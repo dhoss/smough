@@ -15,6 +15,27 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.typelevel</groupId>
+            <artifactId>cats-effect_2.12</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.tpolecat</groupId>
+            <artifactId>doobie-scalatest_2.12</artifactId>
+            <version>0.5.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.tpolecat</groupId>
+            <artifactId>doobie-core_2.12</artifactId>
+            <version>0.5.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.tpolecat</groupId>
+            <artifactId>doobie-postgres_2.12</artifactId>
+            <version>0.5.3</version>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.25</version>
@@ -78,33 +99,6 @@
                 </executions>
             </plugin>
 
-            <!-- Plugin to create a single jar that includes all dependencies -->
-            <!--
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <mainClass>io.dja.smough.ApiServer</mainClass>
-                        </manifest>
-                    </archive>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
