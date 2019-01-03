@@ -30,12 +30,4 @@ object ApiServer extends WithLogger {
       case Failure(error) => println(s"error: ${error.getMessage}")
     }
   }
-
-
-}
-
-import org.slf4j.{LoggerFactory, Logger => SLogger}
-
-trait WithLogger {
-  lazy val log: SLogger = LoggerFactory.getLogger(getClass)
 }
