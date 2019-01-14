@@ -1,24 +1,47 @@
 package io.dja.smough
-import scala.concurrent.ExecutionContext
+import java.util.concurrent.Executors
+
 import scala.util.{Failure, Success}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.model.{ContentType, HttpEntity, HttpResponse, MediaTypes}
+import akka.http.scaladsl.model._
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import doobie.util.transactor.Transactor
+import scalikejdbc._
+import akka.http.scaladsl.marshalling.Marshal
+
+import scala.concurrent.{ExecutionContext, Future}
 
 object ApiServer extends WithLogger {
+  import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
+  import io.circe.generic.auto._
   implicit private val system: ActorSystem = ActorSystem("smough-rest-api")
   implicit private val executor: ExecutionContext = system.dispatcher
   implicit private val materializer: ActorMaterializer = ActorMaterializer()
 
-  val postsEndpoint = path("posts") {
-    get
-      complete(
-        HttpResponse(
-          entity = HttpEntity(
-            ContentType(MediaTypes.`application/json`), "[]")))
+  val connectionPoolSettings = ConnectionPoolSettings(
+    initialSize = 1,
+    maxSize = 10 //config.getInt("jdbc.maxConnections")
+  )
+
+  ConnectionPool.singleton(
+    "jdbc:postgresql://localhost:5432/smough",
+    "smough",
+    "smough",
+    connectionPoolSettings)
+    //config.getString("jdbc.url"), config.getString("jdbc.username"), config.getString("jdbc.password"), connectionPoolSettings)
+
+  lazy val session: DBSession = AutoSession
+  lazy val databaseExecutorContext: ExecutionContext =
+    ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(10))
+      //config.getInt("jdbc.maxConnections")))
+
+  private val postStore = new PostStore(session, databaseExecutorContext)
+
+  private val postsEndpoint = path("posts") {
+    get {
+      complete(postStore.all())
+    }
   }
 
   private val bindingFuture =
@@ -33,16 +56,33 @@ object ApiServer extends WithLogger {
   }
 }
 
-class DatabaseStore(val transactor: Transactor[cats.effect.IO]) {
-  import doobie._
-  import doobie.implicits._
-  import scala.concurrent.ExecutionContext
-  import cats.effect.IO
+import io.dja.smough.domain._
+class PostStore(session: DBSession, executionContext: ExecutionContext) {
 
-  implicit val cs = IO.contextShift(ExecutionContext.global)
+  implicit private val s = session
+  implicit private val ec = executionContext
 
-  case class Post(id: Int, title: String, body: String, author: Int, createdOn: Int, updatedOn: Int)
+  private val p = PostSchema.syntax("p")
 
-  def all(): Option[List[Post]] = ???
+  def all(): List[Post] = DB.readOnly { implicit s =>
+    sql"""
+         select * from post order by created_on desc
+       """.map(PostSchema(p.resultName)).list.apply
+  }
 
+}
+
+object PostSchema extends SQLSyntaxSupport[Post] {
+  override val tableName = "post"
+
+  def apply(p: ResultName[Post])(rs: WrappedResultSet): Post = {
+    Post(
+      rs.int(p.id),
+      rs.intOpt(p.parent),
+      rs.string(p.title),
+      rs.string(p.body),
+      rs.int(p.author),
+      rs.int(p.createdOn),
+      rs.int(p.updatedOn))
+  }
 }

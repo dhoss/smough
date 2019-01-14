@@ -15,25 +15,24 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.typelevel</groupId>
-            <artifactId>cats-effect_2.12</artifactId>
-            <version>1.1.0</version>
+            <groupId>de.heikoseeberger</groupId>
+            <artifactId>akka-http-circe_2.12</artifactId>
+            <version>1.23.0</version>
         </dependency>
         <dependency>
-            <groupId>org.tpolecat</groupId>
-            <artifactId>doobie-scalatest_2.12</artifactId>
-            <version>0.5.3</version>
-            <scope>test</scope>
+            <groupId>io.circe</groupId>
+            <artifactId>circe-generic_2.12</artifactId>
+            <version>0.11.0</version>
         </dependency>
         <dependency>
-            <groupId>org.tpolecat</groupId>
-            <artifactId>doobie-core_2.12</artifactId>
-            <version>0.5.3</version>
+            <groupId>org.scalikejdbc</groupId>
+            <artifactId>scalikejdbc_2.12</artifactId>
+            <version>3.3.1</version>
         </dependency>
         <dependency>
-            <groupId>org.tpolecat</groupId>
-            <artifactId>doobie-postgres_2.12</artifactId>
-            <version>0.5.3</version>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.5</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
