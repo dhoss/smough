@@ -1,10 +1,12 @@
 package io.dja.smough
 
+import java.time.Instant
+
 import io.circe.syntax._
 import io.circe._
 
 package object domain {
-  case class Post(id: Int, parent: Option[Int], title: String, body: String, author: Int, createdOn: Int, updatedOn: Int)
+  case class Post(id: Int, parent: Option[Int], title: String, body: String, author: Int, createdOn: Instant, updatedOn: Instant)
   object Post {
     implicit val encoder: Encoder[Post] = (a: Post) => {
       Json.obj(
@@ -25,8 +27,8 @@ package object domain {
         title <- c.downField("title").as[String]
         body <- c.downField("body").as[String]
         author <- c.downField("author").as[Int]
-        createdOn <- c.downField("createdOn").as[Int]
-        updatedOn <- c.downField("updatedOn").as[Int]
+        createdOn <- c.downField("createdOn").as[Instant]
+        updatedOn <- c.downField("updatedOn").as[Instant]
       } yield Post(id, parent, title, body, author, createdOn, updatedOn)
     }
   }

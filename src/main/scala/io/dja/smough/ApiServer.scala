@@ -62,12 +62,10 @@ class PostStore(session: DBSession, executionContext: ExecutionContext) {
   implicit private val s = session
   implicit private val ec = executionContext
 
-  private val p = PostSchema.syntax("p")
-
   def all(): List[Post] = DB.readOnly { implicit s =>
     sql"""
-         select * from post order by created_on desc
-       """.map(PostSchema(p.resultName)).list.apply
+         select id, parent, title, body, author, created_on, updated_on from post order by created_on desc
+       """.map( p => PostSchema(p)).list.apply
   }
 
 }
@@ -75,14 +73,14 @@ class PostStore(session: DBSession, executionContext: ExecutionContext) {
 object PostSchema extends SQLSyntaxSupport[Post] {
   override val tableName = "post"
 
-  def apply(p: ResultName[Post])(rs: WrappedResultSet): Post = {
+  def apply(rs: WrappedResultSet): Post = {
     Post(
-      rs.int(p.id),
-      rs.intOpt(p.parent),
-      rs.string(p.title),
-      rs.string(p.body),
-      rs.int(p.author),
-      rs.int(p.createdOn),
-      rs.int(p.updatedOn))
+      rs.int("id"),
+      rs.intOpt("parent"),
+      rs.string("title"),
+      rs.string("body"),
+      rs.int("author"),
+      rs.dateTime("created_on").toInstant,
+      rs.dateTime("updated_on").toInstant)
   }
 }
