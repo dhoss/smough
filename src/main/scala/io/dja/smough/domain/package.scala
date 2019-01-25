@@ -6,13 +6,14 @@ import io.circe.syntax._
 import io.circe._
 
 package object domain {
-  case class Post(id: Int, parent: Option[Int], title: String, body: String, author: Int, createdOn: Instant, updatedOn: Instant)
+  case class Post(id: Int, parent: Option[Int], title: String, slug: String, body: String, author: Int, createdOn: Instant, updatedOn: Instant)
   object Post {
     implicit val encoder: Encoder[Post] = (a: Post) => {
       Json.obj(
         "id" -> a.id.asJson,
         "parent" -> a.parent.asJson,
         "title" -> a.title.asJson,
+        "slug" -> a.slug.asJson,
         "body" -> a.body.asJson,
         "author" -> a.author.asJson,
         "createdOn" -> a.createdOn.asJson,
@@ -25,11 +26,12 @@ package object domain {
         id <- c.downField("id").as[Int]
         parent <- c.downField("parent").as[Option[Int]]
         title <- c.downField("title").as[String]
+        slug <- c.downField("slug").as[String]
         body <- c.downField("body").as[String]
         author <- c.downField("author").as[Int]
         createdOn <- c.downField("createdOn").as[Instant]
         updatedOn <- c.downField("updatedOn").as[Instant]
-      } yield Post(id, parent, title, body, author, createdOn, updatedOn)
+      } yield Post(id, parent, title, slug, body, author, createdOn, updatedOn)
     }
   }
 }
