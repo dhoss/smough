@@ -31,24 +31,22 @@ object ApiServer extends WithLogger {
     "smough",
     "smough",
     connectionPoolSettings)
-    //config.getString("jdbc.url"), config.getString("jdbc.username"), config.getString("jdbc.password"), connectionPoolSettings)
 
   lazy val session: DBSession = AutoSession
   lazy val databaseExecutorContext: ExecutionContext =
     ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(10))
-      //config.getInt("jdbc.maxConnections")))
 
   private val postStore = new PostStore(session, databaseExecutorContext)
 
   private val listPostsEndpoint = path("posts") {
     get {
-      complete(postStore.retrieveAllFromDb())
+      complete(postStore.retrieveAllFromCache())
     }
   }
 
   private val findPostEndpoint = path("posts"/Segment) { slug =>
     get {
-      complete(postStore.findBySlugFromDb(slug))
+      complete(postStore.findBySlug(slug))
     }
   }
 
@@ -62,7 +60,6 @@ object ApiServer extends WithLogger {
       case Success(serverBinding) => {
         log.info(s"listening to ${serverBinding.localAddress}")
         postStore.loadPosts()
-        log.info("Posts loaded")
       }
       case Failure(error) => log.error(s"error: ${error.getMessage}")
     }
@@ -70,7 +67,8 @@ object ApiServer extends WithLogger {
 }
 
 import io.dja.smough.domain._
-class PostStore(session: DBSession, executionContext: ExecutionContext) {
+class PostStore(session: DBSession, executionContext: ExecutionContext)
+  extends WithLogger {
 
   implicit private val s = session
   implicit private val ec = executionContext
@@ -79,27 +77,34 @@ class PostStore(session: DBSession, executionContext: ExecutionContext) {
   private val postCache = mutable.HashMap[String, Post]()
 
   def loadPosts(): Unit = {
+    log.info("Determining whether or not to load posts into memory")
     if (postCache.isEmpty) {
+      log.info("Post cache is empty, loading posts")
       for (post <- retrieveAllFromDb()) {
-        postCache += (post.title -> post)
+        postCache += (post.slug -> post)
       }
+      log.info("Loading posts complete.")
     }
   }
 
   def retrieveAllFromCache(): mutable.HashMap[String, Post] = {
+    log.info("Retrieving posts from cache")
     postCache
   }
 
   def findBySlug(slug: String): Option[Post] = {
+    log.info(s"Attempting to find ${slug} in cache")
     Option(postCache.getOrElseUpdate(slug, findBySlugFromDb(slug).get))
   }
 
   def findBySlugFromDb(slug: String): Option[Post] =  DB.readOnly { implicit s =>
+    log.info(s"Loading ${slug} from db")
     sql"""select id, parent, title, slug, body, author, created_on, updated_on from post where slug=${slug}"""
       .map(PostSchema.apply).single().apply
   }
 
   def retrieveAllFromDb(): List[Post] = DB.readOnly { implicit s =>
+    log.info("Loading all posts from db")
     // TODO: Move this to a construct select method
     sql"""
          select id, parent, title, slug, body, author, created_on, updated_on from post order by created_on desc
