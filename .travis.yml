@@ -2,7 +2,7 @@ language: scala
 services:
   - postgresql
 before_script:
-  - psql -c 'CREATE DATABASE smough; CREATE USER smough WITH ENCRYPTED PASSWORD `smough`;GRANT ALL PRIVILEGES ON DATABASE smough TO smough;' -U postgres
+  - psql -U postgres < src/main/resources/sql/bootstrap.sql
 scala:
   - 2.12.7
 script:
