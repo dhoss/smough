@@ -15,8 +15,8 @@ script:
   - ./install-dependencies.sh
   - mvn clean test scoverage:report
 after_success:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
   - mvn coveralls:report
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
 cache:
   directories:
     - $HOME/.m2
