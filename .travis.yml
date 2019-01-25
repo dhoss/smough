@@ -16,7 +16,7 @@ script:
   - mvn clean test scoverage:report
 after_success:
   - mvn coveralls:report
-  - ./cc-test-reporter format-coverage --coverage-input-type cobertura smough/target/cobertura.xml
+  - ./cc-test-reporter format-coverage -t cobertura smough/target/cobertura.xml
   - ./cc-test-reporter upload-coverage
 cache:
   directories:
