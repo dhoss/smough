@@ -16,7 +16,8 @@ script:
   - mvn clean test scoverage:report
 after_success:
   - mvn coveralls:report
-  - ./cc-test-reporter after-build -t cobertura -p /home/travis/build/dhoss/smough/target --exit-code $TRAVIS_TEST_RESULT
+  - ./cc-test-reporter format-coverage --coverage-input-type cobertura smough/target/cobertura.xml
+  - ./cc-test-reporter upload-coverage
 cache:
   directories:
     - $HOME/.m2
