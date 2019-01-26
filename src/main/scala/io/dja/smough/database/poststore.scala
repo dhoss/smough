@@ -12,8 +12,6 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
   implicit private val s = session
   implicit private val ec = executionContext
 
-
-
   def findBySlugFromDb(slug: String): Option[Post] =  DB.readOnly { implicit s =>
     log.info(s"Loading ${slug} from db")
     sql"""select id, parent, title, slug, body, author, created_on, updated_on from post where slug=${slug}"""
