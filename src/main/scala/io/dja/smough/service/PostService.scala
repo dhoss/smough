@@ -1,6 +1,6 @@
 package io.dja.smough.service
 
-import io.dja.smough.{WithLogger, domain}
+import io.dja.smough.WithLogger
 import io.dja.smough.database.PostStore
 import io.dja.smough.domain.Post
 
