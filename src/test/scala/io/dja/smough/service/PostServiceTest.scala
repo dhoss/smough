@@ -7,7 +7,7 @@ import io.dja.smough.domain.Post
 import org.mockito.ArgumentMatchersSugar
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import org.scalatest.mockito.MockitoSugar
-import org.mockito.Mockito.{verify, when}
+import org.mockito.Mockito.{verify, verifyNoMoreInteractions, when, times, never}
 
 class PostServiceTest extends FunSuite
     with MockitoSugar
@@ -34,10 +34,12 @@ class PostServiceTest extends FunSuite
     assert(
       Map() == postService.retrieveAllFromCache())
     postService.loadPosts()
-    verify(postStore).retrieveAllFromDb()
+    verify(postStore, times(1)).retrieveAllFromDb()
+    verifyNoMoreInteractions(postStore)
     assert(
       Map(
         expectedPost.slug -> expectedPost) == postService.retrieveAllFromCache())
+    // make sure to breakout if the cache isn't empty
+    postService.loadPosts()
   }
-
 }
