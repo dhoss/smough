@@ -75,4 +75,7 @@ class PostStoreIntegrationTest extends FunSuite
     assert(expectedPost == postStore.findBySlugFromDb("test-post").get)
   }
 
+  test("find all posts from db", IntegrationTest) {
+    assert(List(expectedPost) == postStore.retrieveAllFromDb())
+  }
 }
