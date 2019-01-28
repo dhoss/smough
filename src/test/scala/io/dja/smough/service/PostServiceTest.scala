@@ -1,13 +1,13 @@
 package io.dja.smough.service
 
-import java.time.Instant
+import java.time.OffsetDateTime
 
 import io.dja.smough.database.PostStore
 import io.dja.smough.domain.Post
 import org.mockito.ArgumentMatchersSugar
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import org.scalatest.mockito.MockitoSugar
-import org.mockito.Mockito.{verify, verifyNoMoreInteractions, when, times, never}
+import org.mockito.Mockito.{times, verify, verifyNoMoreInteractions, when}
 
 class PostServiceTest extends FunSuite
     with MockitoSugar
@@ -16,7 +16,7 @@ class PostServiceTest extends FunSuite
 
   val postStore = mock[PostStore]
   val expectedPost = Post(
-    1, None, "test post", "test-post", "this is a test", 1, Instant.now, Instant.now)
+    1, None, "test post", "test-post", "this is a test", 1, OffsetDateTime.now, OffsetDateTime.now)
   var postService: PostService = _
   before {
     postService = new PostService(postStore)

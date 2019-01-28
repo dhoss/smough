@@ -2,7 +2,6 @@ package io.dja.smough.database
 
 import io.dja.smough.WithLogger
 import io.dja.smough.domain._
-import scalikejdbc.{DB, DBSession, WrappedResultSet}
 import scala.concurrent.ExecutionContext
 import scalikejdbc._
 
@@ -39,7 +38,7 @@ object PostSchema extends SQLSyntaxSupport[Post] {
       rs.string("slug"),
       rs.string("body"),
       rs.int("author"),
-      rs.dateTime("created_on").toInstant,
-      rs.dateTime("updated_on").toInstant)
+      rs.offsetDateTime("created_on"),
+      rs.offsetDateTime("updated_on"))
   }
 }

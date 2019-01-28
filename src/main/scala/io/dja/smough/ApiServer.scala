@@ -10,7 +10,6 @@ import akka.stream.ActorMaterializer
 import io.dja.smough.database.PostStore
 import scalikejdbc._
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
-import io.circe.generic.auto._
 import io.dja.smough.service.PostService
 
 import scala.concurrent.ExecutionContext
@@ -23,8 +22,7 @@ object ApiServer extends WithLogger {
 
   val connectionPoolSettings = ConnectionPoolSettings(
     initialSize = 1,
-    maxSize = 10 //config.getInt("jdbc.maxConnections")
-  )
+    maxSize = 10)
 
   ConnectionPool.singleton(
     "jdbc:postgresql://localhost:5432/smough",

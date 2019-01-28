@@ -8,7 +8,7 @@ import scala.collection.mutable
 
 class PostService(val postStore: PostStore) extends WithLogger {
   // TODO: deflate post objects into a hashmap or maybe flatbuffer?
-  val postCache = mutable.HashMap[String, Post]()
+  private val postCache = mutable.HashMap[String, Post]()
 
   def loadPosts(): Unit = {
     log.info("Determining whether or not to load posts into memory")

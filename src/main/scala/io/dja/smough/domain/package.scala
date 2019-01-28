@@ -1,12 +1,13 @@
 package io.dja.smough
 
-import java.time.Instant
+import java.time.OffsetDateTime
 
 import io.circe.syntax._
 import io.circe._
 
 package object domain {
-  case class Post(id: Int, parent: Option[Int], title: String, slug: String, body: String, author: Int, createdOn: Instant, updatedOn: Instant)
+  // TODO: clean up formatting
+  case class Post(id: Int, parent: Option[Int], title: String, slug: String, body: String, author: Int, createdOn: OffsetDateTime, updatedOn: OffsetDateTime)
   object Post {
     implicit val encoder: Encoder[Post] = (a: Post) => {
       Json.obj(
@@ -29,8 +30,8 @@ package object domain {
         slug <- c.downField("slug").as[String]
         body <- c.downField("body").as[String]
         author <- c.downField("author").as[Int]
-        createdOn <- c.downField("createdOn").as[Instant]
-        updatedOn <- c.downField("updatedOn").as[Instant]
+        createdOn <- c.downField("createdOn").as[OffsetDateTime]
+        updatedOn <- c.downField("updatedOn").as[OffsetDateTime]
       } yield Post(id, parent, title, slug, body, author, createdOn, updatedOn)
     }
   }
