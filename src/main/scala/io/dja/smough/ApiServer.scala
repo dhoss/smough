@@ -64,4 +64,3 @@ object ApiServer extends WithLogger {
     }
   }
 }
-

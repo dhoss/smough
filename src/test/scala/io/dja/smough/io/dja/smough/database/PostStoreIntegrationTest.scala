@@ -3,7 +3,7 @@ package io.dja.smough.io.dja.smough.database
 import java.time.OffsetDateTime
 import java.util.concurrent.Executors
 
-import io.dja.smough.database.PostStore
+import io.dja.smough.database.{PostSchema, PostStore}
 import io.dja.smough.domain.Post
 import io.dja.smough.test.util.IntegrationTest
 import org.mockito.ArgumentMatchersSugar
@@ -14,9 +14,9 @@ import scalikejdbc._
 import scala.concurrent.ExecutionContext
 
 class PostStoreIntegrationTest extends FunSuite
-    with MockitoSugar
-    with ArgumentMatchersSugar
-    with BeforeAndAfter {
+  with MockitoSugar
+  with ArgumentMatchersSugar
+  with BeforeAndAfter {
 
   val connectionPoolSettings = ConnectionPoolSettings(
     initialSize = 1,
@@ -36,22 +36,21 @@ class PostStoreIntegrationTest extends FunSuite
   val postStore = new PostStore(session, databaseExecutorContext)
 
   val expectedPost = Post(
-    1,
+    None,
     None,
     "test post",
     "test-post",
     "this is a test post",
     1,
-    OffsetDateTime.now.withNano(0),
-    OffsetDateTime.now.withNano(0))
+    Some(OffsetDateTime.now.withNano(0)),
+    Some(OffsetDateTime.now.withNano(0)))
 
   before {
     // TODO: maybe make these fixtures
     DB.localTx { implicit session =>
       sql"""
-         INSERT INTO post(id, title, slug, body, author, created_on, updated_on)
+         INSERT INTO post(title, slug, body, author, created_on, updated_on)
          VALUES(
-            ${expectedPost.id},
             ${expectedPost.title},
             ${expectedPost.slug},
             ${expectedPost.body},
@@ -70,6 +69,16 @@ class PostStoreIntegrationTest extends FunSuite
        """.execute.apply
     }
   }
+
+  test("insert new row", IntegrationTest) {
+    postStore.insertIntoDb(expectedPost)
+    val postFromDb = DB.readOnly { implicit session =>
+      sql"""SELECT * FROM post WHERE slug=${expectedPost.slug}"""
+        .map(PostSchema.apply).single().apply
+    }
+    assert(expectedPost == postFromDb.get)
+  }
+
 
   test("find by slug", IntegrationTest) {
     assert(expectedPost == postStore.findBySlugFromDb("test-post").get)

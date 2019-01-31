@@ -7,7 +7,7 @@ import io.circe._
 
 package object domain {
   // TODO: clean up formatting
-  case class Post(id: Int, parent: Option[Int], title: String, slug: String, body: String, author: Int, createdOn: OffsetDateTime, updatedOn: OffsetDateTime)
+  case class Post(id: Option[Int], parent: Option[Int], title: String, slug: String, body: String, author: Int, createdOn: Option[OffsetDateTime], updatedOn: Option[OffsetDateTime])
   object Post {
     implicit val encoder: Encoder[Post] = (a: Post) => {
       Json.obj(
@@ -32,7 +32,7 @@ package object domain {
         author <- c.downField("author").as[Int]
         createdOn <- c.downField("createdOn").as[OffsetDateTime]
         updatedOn <- c.downField("updatedOn").as[OffsetDateTime]
-      } yield Post(id, parent, title, slug, body, author, createdOn, updatedOn)
+      } yield Post(Some(id), parent, title, slug, body, author, Some(createdOn), Some(updatedOn))
     }
   }
 }
