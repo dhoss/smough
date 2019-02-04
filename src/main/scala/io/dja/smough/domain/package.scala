@@ -15,8 +15,8 @@ package object domain {
     slug: String,
     body: String,
     author: Int,
-    createdOn: Option[OffsetDateTime],
-    updatedOn: Option[OffsetDateTime],
+    createdOn: Option[OffsetDateTime] = None,
+    updatedOn: Option[OffsetDateTime] = None,
     id: Option[Int] = None)
 
   object Post {

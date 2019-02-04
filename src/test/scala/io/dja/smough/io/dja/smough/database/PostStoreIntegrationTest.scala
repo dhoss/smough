@@ -8,7 +8,7 @@ import io.dja.smough.domain.Post
 import io.dja.smough.test.util.IntegrationTest
 import org.mockito.ArgumentMatchersSugar
 import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{BeforeAndAfter, BeforeAndAfterEach, FunSuite}
+import org.scalatest.{BeforeAndAfterEach, FunSuite}
 import scalikejdbc._
 
 import scala.concurrent.ExecutionContext
