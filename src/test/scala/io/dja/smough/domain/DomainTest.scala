@@ -2,38 +2,41 @@ package io.dja.smough.domain
 
 import java.time.OffsetDateTime
 
+import io.circe.Json
 import org.scalatest.FunSuite
+import io.circe.syntax._
 
 class DomainTest extends FunSuite {
 
-  test("Constructing Post DTO works") {
-    // TODO: move this somewhere common
-    val expectedPostWithId = Post(
-      None,
-      "test post",
-      "test-post",
-      "this is a test",
-      1,
-      Some(OffsetDateTime.now),
-      Some(OffsetDateTime.now),
-      Some(1))
-    val actualPostWithId = Post(
-      expectedPostWithId.parent,
-      expectedPostWithId.title,
-      expectedPostWithId.slug,
-      expectedPostWithId.body,
-      expectedPostWithId.author,
-      expectedPostWithId.createdOn,
-      expectedPostWithId.updatedOn,
-      expectedPostWithId.id
-    )
+  // TODO: move this somewhere common
+  val post = Post(
+    None,
+    "test post",
+    "test-post",
+    "this is a test",
+    1,
+    Some(OffsetDateTime.now),
+    Some(OffsetDateTime.now),
+    Some(1))
 
-    assert(expectedPostWithId == actualPostWithId)
+  val expectedPostJson = Json.obj(
+    "id" -> post.id.asJson,
+    "parent" -> post.parent.asJson,
+    "title" -> post.title.asJson,
+    "slug" -> post.slug.asJson,
+    "body" -> post.body.asJson,
+    "author" -> post.author.asJson,
+    "createdOn" -> post.createdOn.asJson,
+    "updatedOn" -> post.updatedOn.asJson
+  )
 
-    // ensure nothing gets thrown if we leave out optional fields
-    Post(None, "test post", "test-post", "this is a test", 1)
-    Post(None, "test post", "test-post", "this is a test", 1, Some(OffsetDateTime.now))
-    Post(None, "test post", "test-post", "this is a test", 1, Some(OffsetDateTime.now), Some(OffsetDateTime.now))
+  test("Encode Post -> JSON") {
+    assert(post.asJson == expectedPostJson)
   }
 
+  test("Decode JSON -> Post") {
+    // TODO: find out a better way than just Right(post)
+    // can you call .get on Right or something?
+    assert(expectedPostJson.as[Post] == Right(post))
+  }
 }
