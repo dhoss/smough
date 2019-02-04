@@ -6,8 +6,19 @@ import io.circe.syntax._
 import io.circe._
 
 package object domain {
-  // TODO: clean up formatting
-  case class Post(id: Option[Int], parent: Option[Int], title: String, slug: String, body: String, author: Int, createdOn: Option[OffsetDateTime], updatedOn: Option[OffsetDateTime])
+  // We don't need to pass in an ID unless we're constructing the Post DTO
+  // Therefore, it's Optional and defaults to None at the end of the argument list
+  // so it's less convenient to add manually.
+  case class Post(
+    parent: Option[Int],
+    title: String,
+    slug: String,
+    body: String,
+    author: Int,
+    createdOn: Option[OffsetDateTime],
+    updatedOn: Option[OffsetDateTime],
+    id: Option[Int] = None)
+
   object Post {
     implicit val encoder: Encoder[Post] = (a: Post) => {
       Json.obj(
@@ -32,7 +43,7 @@ package object domain {
         author <- c.downField("author").as[Int]
         createdOn <- c.downField("createdOn").as[OffsetDateTime]
         updatedOn <- c.downField("updatedOn").as[OffsetDateTime]
-      } yield Post(Some(id), parent, title, slug, body, author, Some(createdOn), Some(updatedOn))
+      } yield Post(parent, title, slug, body, author, Some(createdOn), Some(updatedOn), Some(id))
     }
   }
 }

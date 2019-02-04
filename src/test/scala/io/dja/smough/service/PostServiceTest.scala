@@ -16,7 +16,7 @@ class PostServiceTest extends FunSuite
 
   val postStore = mock[PostStore]
   val expectedPost = Post(
-    Some(1), None, "test post", "test-post", "this is a test", 1, Some(OffsetDateTime.now), Some(OffsetDateTime.now))
+    None, "test post", "test-post", "this is a test", 1, Some(OffsetDateTime.now), Some(OffsetDateTime.now), Some(1))
   var postService: PostService = _
   before {
     postService = new PostService(postStore)

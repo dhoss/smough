@@ -16,7 +16,7 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
     sql"""
           INSERT INTO post(parent, title, slug, body, author, created_on, updated_on)
           VALUES(${post.parent}, ${post.title}, ${post.slug}, ${post.body}, ${post.author}, now(), now())
-      """.execute.apply
+      """.update.apply()
   }
 
   def findBySlugFromDb(slug: String): Option[Post] =  DB.readOnly { implicit s =>
@@ -40,13 +40,13 @@ object PostSchema extends SQLSyntaxSupport[Post] {
 
   def apply(rs: WrappedResultSet): Post = {
     Post(
-      rs.intOpt("id"),
       rs.intOpt("parent"),
       rs.string("title"),
       rs.string("slug"),
       rs.string("body"),
       rs.int("author"),
       rs.offsetDateTimeOpt("created_on"),
-      rs.offsetDateTimeOpt("updated_on"))
+      rs.offsetDateTimeOpt("updated_on"),
+    rs.intOpt("id"))
   }
 }
