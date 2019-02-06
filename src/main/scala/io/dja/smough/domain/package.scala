@@ -5,9 +5,6 @@ import java.time.OffsetDateTime
 import io.circe.syntax._
 import io.circe._
 
-import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
-
 package object domain {
   // We don't need to pass in an ID unless we're constructing the Post DTO
   // Therefore, it's Optional and defaults to None at the end of the argument list
