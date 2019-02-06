@@ -14,7 +14,6 @@ class PostServiceTest extends FunSuite
     with ArgumentMatchersSugar
     with BeforeAndAfter {
 
-  val postStore = mock[PostStore]
   val expectedPost = Post(
     None,
     "test post",
@@ -24,11 +23,33 @@ class PostServiceTest extends FunSuite
     Some(OffsetDateTime.now),
     Some(OffsetDateTime.now),
     Some(1))
+
   var postService: PostService = _
+  val postStore = mock[PostStore]
   before {
     postService = new PostService(postStore)
     when(postStore.findBySlugFromDb(any[String])).thenReturn(Option(expectedPost))
     when(postStore.retrieveAllFromDb()).thenReturn(List(expectedPost))
+    when(postStore.insertIntoDb(any[Post])).thenReturn(1)
+    when(postStore.updateInDb(any[Post])).thenReturn(1)
+  }
+
+  // TODO: do we even need to check to make sure the cache is empty or anything besides the
+  // verification to make sure the Store method is called and that there are no more interactions?
+  test("Insert new post") {
+    postService.insert(expectedPost)
+    verify(postStore, times(1)).insertIntoDb(any[Post])
+    verifyNoMoreInteractions(postStore)
+    assert(1 == postService.retrieveAllFromCache().size)
+    postService.insert(expectedPost)
+  }
+
+  test("Update a post") {
+    postService.update(expectedPost)
+    verify(postStore, times(1)).updateInDb(any[Post])
+    verifyNoMoreInteractions(postStore)
+    assert(1 == postService.retrieveAllFromCache().size)
+    postService.insert(expectedPost)
   }
 
   test("Find by slug") {
