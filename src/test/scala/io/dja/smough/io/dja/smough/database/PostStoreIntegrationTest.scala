@@ -7,8 +7,9 @@ import io.dja.smough.database.{PostSchema, PostStore}
 import io.dja.smough.domain.Post
 import io.dja.smough.test.util.IntegrationTest
 import org.mockito.ArgumentMatchersSugar
+import org.scalatest.matchers.HavePropertyMatcher
 import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{BeforeAndAfterEach, FunSuite}
+import org.scalatest.{BeforeAndAfterEach, FunSuite, MustMatchers}
 import scalikejdbc._
 
 import scala.concurrent.ExecutionContext
@@ -16,7 +17,10 @@ import scala.concurrent.ExecutionContext
 class PostStoreIntegrationTest extends FunSuite
   with MockitoSugar
   with ArgumentMatchersSugar
-  with BeforeAndAfterEach {
+  // TODO: this is apparently deprecated so look into replacing it with
+  //  http://doc.scalatest.org/2.2.6/#org.scalatest.BeforeAndAfterEachTestData
+  with BeforeAndAfterEach
+  with MustMatchers {
 
   val connectionPoolSettings = ConnectionPoolSettings(
     initialSize = 1,
@@ -56,15 +60,36 @@ class PostStoreIntegrationTest extends FunSuite
 
   test("insert new row", IntegrationTest) {
     deleteFixtures()
-    val postFromDb = findPostFromDb().get
     postStore.insertIntoDb(expectedPost)
+    val postFromDb = findPostFromDb().get
     assertPostEquals(expectedPost, postFromDb)
   }
 
   test("update a row", IntegrationTest) {
     val postFromDb = findPostFromDb().get
-    val updatedPost = postFromDb.with
-    postStore.updateInDb(postFromDb)
+    val updatedPost = Post(
+      postFromDb.parent,
+      postFromDb.title,
+      postFromDb.slug,
+      "updated post body",
+      postFromDb.author,
+      postFromDb.createdOn,
+      postFromDb.updatedOn,
+      postFromDb.id)
+    postStore.updateInDb(updatedPost)
+    assertPostEquals(updatedPost, findPostByIdFromDb(postFromDb.id).get)
+
+    the [IllegalArgumentException] thrownBy {
+      val invalidUpdatedPost = Post(
+        postFromDb.parent,
+        postFromDb.title,
+        postFromDb.slug,
+        "updated post body",
+        postFromDb.author,
+        postFromDb.createdOn,
+        postFromDb.updatedOn)
+      postStore.updateInDb(invalidUpdatedPost)
+    } must have message ("id column is required")
   }
 
   test("find by slug", IntegrationTest) {
@@ -78,6 +103,7 @@ class PostStoreIntegrationTest extends FunSuite
     } yield assertPostEquals(e, a)
   }
 
+  // TODO: genericize and move these up to a util class
   private def findPostFromDb(): Option[Post] = {
     DB.readOnly { implicit session =>
       sql"""SELECT * FROM post WHERE slug=${expectedPost.slug}"""
@@ -85,12 +111,26 @@ class PostStoreIntegrationTest extends FunSuite
     }
   }
 
-  private def assertPostEquals(expected: Post, actual: Post): Boolean = {
-    postToMap(expected) == postToMap(actual)
+  private def findPostByIdFromDb(id: Option[Int]): Option[Post] = {
+    DB.readOnly { implicit session =>
+      sql"""SELECT * FROM post WHERE id=${id}"""
+        .map(PostSchema.apply).single().apply
+    }
+  }
+
+  private def assertPostEquals(expected: Post, actual: Post) = {
+    // TODO: figure out how to check dates or do it explicitly somewhere
+    actual must have(
+      'title (expectedPost.title),
+      'slug (expectedPost.slug),
+      'author (expectedPost.author)
+    )
+
   }
 
   private def postToMap(p: Post): Map[String, Any] = {
     Map(
+      "id" -> p.id,
       "title" -> p.title,
       "slug" -> p.slug,
       "body" -> p.body,

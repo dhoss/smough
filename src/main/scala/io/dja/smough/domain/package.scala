@@ -5,6 +5,9 @@ import java.time.OffsetDateTime
 import io.circe.syntax._
 import io.circe._
 
+import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
+
 package object domain {
   // We don't need to pass in an ID unless we're constructing the Post DTO
   // Therefore, it's Optional and defaults to None at the end of the argument list
@@ -69,6 +72,18 @@ package object domain {
         createdOn <- c.downField("createdOn").as[OffsetDateTime]
         updatedOn <- c.downField("updatedOn").as[OffsetDateTime]
       } yield Post(parent, title, slug, body, author, Some(createdOn), Some(updatedOn), Some(id))
+    }
+  }
+
+  // TODO: see if we can tighten up types here
+  case class UpdatePost(id: Int, updateMap: mutable.HashMap[String, Any]) {
+    override def toString(): String = {
+      val s = ArrayBuffer[String]()
+      for ((k, v) <- updateMap) {
+        s.append(s"${k}=${v}")
+      }
+      s.prepend(s"id=${id}")
+      s.mkString(",")
     }
   }
 }

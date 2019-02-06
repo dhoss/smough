@@ -33,25 +33,25 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
       """.update.apply()
   }
 
+  // TODO: throw an exception if no id is present
   def updateInDb(post: Post) = DB.localTx { implicit s =>
     log.info(s"Updating ${post} in database")
+    if (post.id.isEmpty) {
+      throw new IllegalArgumentException("id column is required")
+    }
     // TODO: this needs to be built so only the fields changed get updated
-    // or maybe consider looking into the sql dsl thing
-    // may need to consider an "UpdatePost" DTO and start doing things message-y
     sql"""
           UPDATE post
           SET
-            parent=${post.parent},
-            title=${post.title},
-            body=${post.body},
+            parent = ${post.parent},
+            title = ${post.title},
+            slug = ${post.slug},
+            body = ${post.body},
             updated_on=NOW()
           WHERE id=${post.id}
        """.update.apply()
   }
 
-  // TODO: consider making this generic
-  private case class PostField(name: String, value: Any)
-  private case class UpdateFields(fields: List[PostField])
 
   def findBySlugFromDb(slug: String): Option[Post] =  DB.readOnly { implicit s =>
     log.info(s"Loading ${slug} from database")
@@ -79,8 +79,8 @@ object PostSchema extends SQLSyntaxSupport[Post] {
       rs.string("slug"),
       rs.string("body"),
       rs.int("author"),
-      rs.offsetDateTimeOpt("created_on"),
-      rs.offsetDateTimeOpt("updated_on"),
-    rs.intOpt("id"))
+      Option(rs.offsetDateTime("created_on").withNano(0)),
+      Option(rs.offsetDateTime("updated_on").withNano(0)),
+      rs.intOpt("id"))
   }
 }
