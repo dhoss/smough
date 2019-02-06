@@ -49,16 +49,4 @@ package object domain {
       } yield Post(parent, title, slug, body, author, Some(createdOn), Some(updatedOn), Some(id))
     }
   }
-
-  // TODO: see if we can tighten up types here
-  case class UpdatePost(id: Int, updateMap: mutable.HashMap[String, Any]) {
-    override def toString(): String = {
-      val s = ArrayBuffer[String]()
-      for ((k, v) <- updateMap) {
-        s.append(s"${k}=${v}")
-      }
-      s.prepend(s"id=${id}")
-      s.mkString(",")
-    }
-  }
 }
