@@ -22,31 +22,6 @@ package object domain {
     updatedOn: Option[OffsetDateTime] = None,
     id: Option[Int] = None)
 
-  class PostBuilder {
-
-    // TODO: turn these into value objects?
-    private var parent: Option[Int] = None
-    private var title: Option[String] = None
-    private var slug: Option[String] = None
-    private var body: Option[String] = None
-    private var author: Option[Int] = None
-    private var createdOn: Option[OffsetDateTime] = None
-    private var updatedOn: Option[OffsetDateTime] = None
-    private var id: Option[Int] = None
-
-    def withParent(p: Int) = { parent = Some(p); this }
-    def withTitle(t: String) = { title = Some(t); this }
-    def withSlug(s: String) = { slug = Some(s); this }
-    def withBody(b: String) = { body = Some(b); this }
-    def withAuthor(a: Int) = { author = Some(a); this }
-    def withCreatedOn(c: OffsetDateTime) = { createdOn = Some(c); this }
-    def withUpdatedOn(u: OffsetDateTime) = { updatedOn = Some(u); this }
-    def withId(i: Int) = { id = Some(i); this }
-
-    def build() = new Post(
-      parent, title.get, slug.get, body.get, author.get, createdOn, updatedOn, id)
-  }
-
   object Post {
     implicit val encoder: Encoder[Post] = (a: Post) => {
       Json.obj(
