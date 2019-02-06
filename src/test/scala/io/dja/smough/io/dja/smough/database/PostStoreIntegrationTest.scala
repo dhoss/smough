@@ -56,12 +56,15 @@ class PostStoreIntegrationTest extends FunSuite
 
   test("insert new row", IntegrationTest) {
     deleteFixtures()
+    val postFromDb = findPostFromDb().get
     postStore.insertIntoDb(expectedPost)
-    val postFromDb = DB.readOnly { implicit session =>
-      sql"""SELECT * FROM post WHERE slug=${expectedPost.slug}"""
-        .map(PostSchema.apply).single().apply
-    }
-    assertPostEquals(expectedPost, postFromDb.get)
+    assertPostEquals(expectedPost, postFromDb)
+  }
+
+  test("update a row", IntegrationTest) {
+    val postFromDb = findPostFromDb().get
+    val updatedPost = postFromDb.with
+    postStore.updateInDb(postFromDb)
   }
 
   test("find by slug", IntegrationTest) {
@@ -73,6 +76,13 @@ class PostStoreIntegrationTest extends FunSuite
       e <- List(expectedPost)
       a <- postStore.retrieveAllFromDb()
     } yield assertPostEquals(e, a)
+  }
+
+  private def findPostFromDb(): Option[Post] = {
+    DB.readOnly { implicit session =>
+      sql"""SELECT * FROM post WHERE slug=${expectedPost.slug}"""
+        .map(PostSchema.apply).single().apply
+    }
   }
 
   private def assertPostEquals(expected: Post, actual: Post): Boolean = {
