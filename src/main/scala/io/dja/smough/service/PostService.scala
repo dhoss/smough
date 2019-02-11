@@ -73,6 +73,7 @@ class PostService(val postStore: PostStore) extends WithLogger {
     Option(postCache.getOrElseUpdate(slug, postStore.findBySlug(slug).get))
   }
 
+  // TODO: we will want to generate a unique slug, this may not do it for us
   private def generateSlug(title: String): String = {
     title.replaceAll("[^A-Za-z1-9]", "-")
   }
