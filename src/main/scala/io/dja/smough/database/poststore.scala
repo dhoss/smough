@@ -11,7 +11,7 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
   implicit private val s = session
   implicit private val ec = executionContext
 
-  def insertIntoDb(post: Post) = DB.localTx { implicit s =>
+  def insert(post: Post) = DB.localTx { implicit s =>
     log.info(s"Inserting ${post} into database")
     sql"""
           INSERT INTO post(
@@ -33,8 +33,7 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
       """.update.apply()
   }
 
-  // TODO: throw an exception if no id is present
-  def updateInDb(post: Post) = DB.localTx { implicit s =>
+  def update(post: Post) = DB.localTx { implicit s =>
     log.info(s"Updating ${post} in database")
     if (post.id.isEmpty) {
       throw new IllegalArgumentException("id column is required")
@@ -52,21 +51,27 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
        """.update.apply()
   }
 
+  def delete(id: Int) = DB.localTx { implicit s =>
+    log.info(s"Deleting Post(${id}) from database")
+    sql"""
+          DELETE FROM post WHERE id=${id}
+       """.update.apply()
+  }
 
-  def findBySlugFromDb(slug: String): Option[Post] =  DB.readOnly { implicit s =>
+  def findBySlug(slug: String): Option[Post] =  DB.readOnly { implicit s =>
     log.info(s"Loading ${slug} from database")
     sql"""select id, parent, title, slug, body, author, created_on, updated_on from post where slug=${slug}"""
       .map(PostSchema.apply).single().apply
   }
 
-  def retrieveAllFromDb(): List[Post] = DB.readOnly { implicit s =>
+  // TODO: add pagination
+  def retrieveAll(): List[Post] = DB.readOnly { implicit s =>
     log.info("Loading all posts from database")
     // TODO: Move this to a construct select method
     sql"""
          select id, parent, title, slug, body, author, created_on, updated_on from post order by created_on desc
        """.map(PostSchema.apply).list.apply
   }
-
 }
 
 object PostSchema extends SQLSyntaxSupport[Post] {

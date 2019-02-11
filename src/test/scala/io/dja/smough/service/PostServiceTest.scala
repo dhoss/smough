@@ -28,17 +28,18 @@ class PostServiceTest extends FunSuite
   val postStore = mock[PostStore]
   before {
     postService = new PostService(postStore)
-    when(postStore.findBySlugFromDb(any[String])).thenReturn(Option(expectedPost))
-    when(postStore.retrieveAllFromDb()).thenReturn(List(expectedPost))
-    when(postStore.insertIntoDb(any[Post])).thenReturn(1)
-    when(postStore.updateInDb(any[Post])).thenReturn(1)
+    when(postStore.findBySlug(any[String])).thenReturn(Option(expectedPost))
+    when(postStore.retrieveAll()).thenReturn(List(expectedPost))
+    when(postStore.insert(any[Post])).thenReturn(1)
+    when(postStore.update(any[Post])).thenReturn(1)
+    when(postStore.delete(any[Int])).thenReturn(1)
   }
 
   // TODO: do we even need to check to make sure the cache is empty or anything besides the
   // verification to make sure the Store method is called and that there are no more interactions?
   test("Insert new post") {
     postService.insert(expectedPost)
-    verify(postStore, times(1)).insertIntoDb(any[Post])
+    verify(postStore, times(1)).insert(any[Post])
     verifyNoMoreInteractions(postStore)
     assert(1 == postService.retrieveAllFromCache().size)
     postService.insert(expectedPost)
@@ -46,7 +47,7 @@ class PostServiceTest extends FunSuite
 
   test("Update a post") {
     postService.update(expectedPost)
-    verify(postStore, times(1)).updateInDb(any[Post])
+    verify(postStore, times(1)).update(any[Post])
     verifyNoMoreInteractions(postStore)
     assert(1 == postService.retrieveAllFromCache().size)
     postService.insert(expectedPost)
@@ -54,7 +55,7 @@ class PostServiceTest extends FunSuite
 
   test("Find by slug") {
     assert(Option(expectedPost) == postService.findBySlug("test-post"))
-    verify(postStore).findBySlugFromDb(any[String])
+    verify(postStore).findBySlug(any[String])
   }
 
   test("Retrieve all from cache") {
@@ -62,12 +63,20 @@ class PostServiceTest extends FunSuite
     assert(
       Map() == postService.retrieveAllFromCache())
     postService.loadPosts()
-    verify(postStore, times(1)).retrieveAllFromDb()
+    verify(postStore, times(1)).retrieveAll()
     verifyNoMoreInteractions(postStore)
     assert(
       Map(
         expectedPost.slug -> expectedPost) == postService.retrieveAllFromCache())
     // make sure to breakout if the cache isn't empty
     postService.loadPosts()
+  }
+
+  test("Delete a post") {
+    postService.delete(expectedPost)
+    verify(postStore, times(1)).delete(any[Int])
+    verifyNoMoreInteractions(postStore)
+    assert(0 == postService.retrieveAllFromCache().size)
+    postService.delete(expectedPost)
   }
 }

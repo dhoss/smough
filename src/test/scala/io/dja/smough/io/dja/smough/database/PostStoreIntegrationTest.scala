@@ -60,7 +60,7 @@ class PostStoreIntegrationTest extends FunSuite
 
   test("insert new row", IntegrationTest) {
     deleteFixtures()
-    postStore.insertIntoDb(expectedPost)
+    postStore.insert(expectedPost)
     val postFromDb = findPostFromDb().get
     assertPostEquals(expectedPost, postFromDb)
   }
@@ -76,7 +76,7 @@ class PostStoreIntegrationTest extends FunSuite
       postFromDb.createdOn,
       postFromDb.updatedOn,
       postFromDb.id)
-    postStore.updateInDb(updatedPost)
+    postStore.update(updatedPost)
     assertPostEquals(updatedPost, findPostByIdFromDb(postFromDb.id).get)
 
     the [IllegalArgumentException] thrownBy {
@@ -88,19 +88,26 @@ class PostStoreIntegrationTest extends FunSuite
         postFromDb.author,
         postFromDb.createdOn,
         postFromDb.updatedOn)
-      postStore.updateInDb(invalidUpdatedPost)
+      postStore.update(invalidUpdatedPost)
     } must have message ("id column is required")
   }
 
   test("find by slug", IntegrationTest) {
-    assertPostEquals(expectedPost, postStore.findBySlugFromDb("test-post").get)
+    assertPostEquals(expectedPost, postStore.findBySlug("test-post").get)
   }
 
+  // TODO: test pagination
   test("find all posts from db", IntegrationTest) {
     for {
       e <- List(expectedPost)
-      a <- postStore.retrieveAllFromDb()
+      a <- postStore.retrieveAll()
     } yield assertPostEquals(e, a)
+  }
+
+  test("delete from db", IntegrationTest) {
+    // TODO: find a better way to deal with options
+    postStore.delete(findPostFromDb().flatMap(_.id).get)
+    None must equal (findPostFromDb())
   }
 
   // TODO: genericize and move these up to a util class
