@@ -42,7 +42,7 @@ class PostStoreIntegrationTest extends FunSuite
   val expectedPost = Post(
     None,
     "test post",
-    "test-post",
+    Some("test-post"),
     "this is a test post",
     1,
     Some(OffsetDateTime.now.withNano(0)),

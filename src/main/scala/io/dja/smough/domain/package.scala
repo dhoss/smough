@@ -12,7 +12,7 @@ package object domain {
   case class Post(
     parent: Option[Int],
     title: String,
-    slug: String,
+    slug: Option[String] = None,
     body: String,
     author: Int,
     createdOn: Option[OffsetDateTime] = None,
@@ -38,7 +38,7 @@ package object domain {
         id <- c.downField("id").as[Int]
         parent <- c.downField("parent").as[Option[Int]]
         title <- c.downField("title").as[String]
-        slug <- c.downField("slug").as[String]
+        slug <- c.downField("slug").as[Option[String]]
         body <- c.downField("body").as[String]
         author <- c.downField("author").as[Int]
         createdOn <- c.downField("createdOn").as[OffsetDateTime]

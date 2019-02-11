@@ -26,13 +26,22 @@ class PostService(val postStore: PostStore) extends WithLogger {
   }
 
   def insert(post: Post): Unit = {
-    log.info(s"Checking to see if Post(${post.slug}) exists in cache")
-    if (!postCache.contains(post.slug)) {
-      log.info(s"Inserting Post(${post.slug}) into database")
-      postStore.insert(post)
+    // TODO: There has to be a better way to do this
+    val postWithSlug = Post(
+      parent = post.parent,
+      title = post.title,
+      slug = Some(generateSlug(post.title)),
+      body = post.body,
+      author = post.author
+    )
+    log.info(s"Checking to see if Post(${postWithSlug.slug}) exists in cache")
+    // TODO: find a better way to deal with Optionals
+    if (!postCache.contains(postWithSlug.slug.get)) {
+      log.info(s"Inserting Post(${postWithSlug.slug}) into database")
+      postStore.insert(postWithSlug)
 
-      log.info(s"Updating cache with Post(${post.slug}")
-      addToCache(post)
+      log.info(s"Updating cache with Post(${postWithSlug.slug}")
+      addToCache(postWithSlug)
     }
   }
 
@@ -64,11 +73,15 @@ class PostService(val postStore: PostStore) extends WithLogger {
     Option(postCache.getOrElseUpdate(slug, postStore.findBySlug(slug).get))
   }
 
+  private def generateSlug(title: String): String = {
+    title.replaceAll("[^A-Za-z1-9]", "-")
+  }
+
   private def addToCache(post: Post) = {
-    postCache += (post.slug -> post)
+    postCache += (post.slug.get -> post)
   }
 
   private def removeFromCache(post: Post) = {
-    postCache -= post.slug
+    postCache -= post.slug.get
   }
 }

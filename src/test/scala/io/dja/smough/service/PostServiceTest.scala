@@ -17,7 +17,7 @@ class PostServiceTest extends FunSuite
   val expectedPost = Post(
     None,
     "test post",
-    "test-post",
+    Some("test-post"),
     "this is a test",
     1,
     Some(OffsetDateTime.now),
@@ -38,7 +38,15 @@ class PostServiceTest extends FunSuite
   // TODO: do we even need to check to make sure the cache is empty or anything besides the
   // verification to make sure the Store method is called and that there are no more interactions?
   test("Insert new post") {
-    postService.insert(expectedPost)
+    val postWithoutSlug = Post(
+      title = expectedPost.title,
+      body = expectedPost.body,
+      parent = expectedPost.parent,
+      author = expectedPost.author,
+      createdOn = expectedPost.createdOn,
+      updatedOn =  expectedPost.updatedOn
+    )
+    postService.insert(postWithoutSlug)
     verify(postStore, times(1)).insert(any[Post])
     verifyNoMoreInteractions(postStore)
     assert(1 == postService.retrieveAllFromCache().size)
@@ -67,7 +75,8 @@ class PostServiceTest extends FunSuite
     verifyNoMoreInteractions(postStore)
     assert(
       Map(
-        expectedPost.slug -> expectedPost) == postService.retrieveAllFromCache())
+        // TODO DEAL WITH THIS BETTER
+        expectedPost.slug.get -> expectedPost) == postService.retrieveAllFromCache())
     // make sure to breakout if the cache isn't empty
     postService.loadPosts()
   }

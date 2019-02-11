@@ -81,7 +81,7 @@ object PostSchema extends SQLSyntaxSupport[Post] {
     Post(
       rs.intOpt("parent"),
       rs.string("title"),
-      rs.string("slug"),
+      rs.stringOpt("slug"),
       rs.string("body"),
       rs.int("author"),
       Option(rs.offsetDateTime("created_on").withNano(0)),

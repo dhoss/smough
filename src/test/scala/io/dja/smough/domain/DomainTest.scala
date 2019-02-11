@@ -12,7 +12,7 @@ class DomainTest extends FunSuite {
   val post = Post(
     None,
     "test post",
-    "test-post",
+    Some("test-post"),
     "this is a test",
     1,
     Some(OffsetDateTime.now),
