@@ -9,6 +9,7 @@ import scala.collection.mutable
 class PostService(val postStore: PostStore) extends WithLogger {
   // TODO: deflate post objects into a hashmap or maybe flatbuffer?
   // TODO: this should be an injectable cache, even if the default is just
+  // TODO: no matter what, this should be synchronized
   // a simple class that keeps things in an in memory HashMap
   private val postCache = mutable.HashMap[String, Post]()
 
