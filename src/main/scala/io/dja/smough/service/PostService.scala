@@ -15,7 +15,7 @@ class PostService(val postStore: PostStore) extends WithLogger {
 
   def loadPosts(): Unit = {
     log.info("Determining whether or not to load posts into memory")
-    if (postCache.isEmpty) {
+    if (cacheIsEmpty) {
       log.info("Post cache is empty, loading posts")
       // TODO: add pagination
       for (post <- postStore.retrieveAll()) {
@@ -37,7 +37,7 @@ class PostService(val postStore: PostStore) extends WithLogger {
     )
     log.info(s"Checking to see if Post(${postWithSlug.slug}) exists in cache")
     // TODO: find a better way to deal with Optionals
-    if (!postCache.contains(postWithSlug.slug.get)) {
+    if (!cacheContains(postWithSlug.slug.get)) {
       log.info(s"Inserting Post(${postWithSlug.slug}) into database")
       postStore.insert(postWithSlug)
 
@@ -66,19 +66,27 @@ class PostService(val postStore: PostStore) extends WithLogger {
   // TODO: add pagination
   def retrieveAllFromCache(): mutable.HashMap[String, Post] = {
     log.info("Retrieving posts from cache")
-    postCache
+    postCache.synchronized(postCache)
   }
 
   def findBySlug(slug: String): Option[Post] = {
     log.info(s"Attempting to find Post(${slug}) in cache")
-    Option(postCache.getOrElseUpdate(slug, postStore.findBySlug(slug).get))
+    Option(
+      postCache.synchronized(
+        postCache.getOrElseUpdate(slug, postStore.findBySlug(slug).get)))
   }
 
-  private def addToCache(post: Post) = {
-    postCache += (post.slug.get -> post)
-  }
+  private def cacheIsEmpty(): Boolean = postCache.synchronized(postCache.isEmpty)
 
-  private def removeFromCache(post: Post) = {
-    postCache -= post.slug.get
-  }
+  private def cacheContains(slug: String): Boolean =
+    postCache.synchronized(
+      postCache.contains(slug))
+
+  private def addToCache(post: Post) =
+    postCache.synchronized(
+      postCache += (post.slug.get -> post))
+
+  private def removeFromCache(post: Post) =
+    postCache.synchronized(
+      postCache -= post.slug.get)
 }
