@@ -46,4 +46,10 @@ package object domain {
       } yield Post(parent, title, slug, body, author, Some(createdOn), Some(updatedOn), Some(id))
     }
   }
+
+  class StringToSlug(val s: String) {
+    def toSlug = s.replaceAll("[^A-Za-z1-9]", "-")
+  }
+
+  implicit def sluggify(s: String) = new StringToSlug(s)
 }

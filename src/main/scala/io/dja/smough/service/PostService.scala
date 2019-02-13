@@ -2,7 +2,7 @@ package io.dja.smough.service
 
 import io.dja.smough.WithLogger
 import io.dja.smough.database.PostStore
-import io.dja.smough.domain.Post
+import io.dja.smough.domain._
 
 import scala.collection.mutable
 
@@ -31,7 +31,7 @@ class PostService(val postStore: PostStore) extends WithLogger {
     val postWithSlug = Post(
       parent = post.parent,
       title = post.title,
-      slug = Some(generateSlug(post.title)),
+      slug = Some(post.title.toSlug),
       body = post.body,
       author = post.author
     )
@@ -72,11 +72,6 @@ class PostService(val postStore: PostStore) extends WithLogger {
   def findBySlug(slug: String): Option[Post] = {
     log.info(s"Attempting to find Post(${slug}) in cache")
     Option(postCache.getOrElseUpdate(slug, postStore.findBySlug(slug).get))
-  }
-
-  // TODO: we will want to generate a unique slug, this may not do it for us
-  private def generateSlug(title: String): String = {
-    title.replaceAll("[^A-Za-z1-9]", "-")
   }
 
   private def addToCache(post: Post) = {

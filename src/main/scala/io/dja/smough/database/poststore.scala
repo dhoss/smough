@@ -46,8 +46,8 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
             title = ${post.title},
             slug = ${post.slug},
             body = ${post.body},
-            updated_on=NOW()
-          WHERE id=${post.id}
+            updated_on = NOW()
+          WHERE id = ${post.id}
        """.update.apply()
   }
 
@@ -84,6 +84,7 @@ object PostSchema extends SQLSyntaxSupport[Post] {
       rs.stringOpt("slug"),
       rs.string("body"),
       rs.int("author"),
+      // Wrapping in option is required because we can't set withNano otherwise
       Option(rs.offsetDateTime("created_on").withNano(0)),
       Option(rs.offsetDateTime("updated_on").withNano(0)),
       rs.intOpt("id"))
