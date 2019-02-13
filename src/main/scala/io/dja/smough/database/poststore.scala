@@ -8,6 +8,11 @@ import scalikejdbc._
 class PostStore(session: DBSession, executionContext: ExecutionContext)
   extends WithLogger {
 
+  GlobalSettings.loggingSQLAndTime = new LoggingSQLAndTimeSettings(
+    enabled = true,
+    singleLineMode = true
+  )
+
   implicit private val s = session
   implicit private val ec = executionContext
 
