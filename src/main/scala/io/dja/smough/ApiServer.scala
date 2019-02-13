@@ -4,12 +4,10 @@ import java.util.concurrent.Executors
 
 import scala.util.{Failure, Success}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.server.Directives._
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import io.dja.smough.database.PostStore
 import scalikejdbc._
-import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.dja.smough.service.PostService
 
 import scala.concurrent.ExecutionContext
@@ -24,10 +22,14 @@ object ApiServer extends WithLogger {
     initialSize = 1,
     maxSize = 10)
 
+  // TODO: pull these from config
+  var jdbcString = "jdbc:postgresql://localhost:5432/smough"
+  var dbUser = "smough"
+  var dbPassword = "smough"
   ConnectionPool.singleton(
-    "jdbc:postgresql://localhost:5432/smough",
-    "smough",
-    "smough",
+    jdbcString,
+    dbUser,
+    dbPassword,
     connectionPoolSettings)
 
   lazy val session: DBSession = AutoSession
@@ -37,23 +39,8 @@ object ApiServer extends WithLogger {
   private val postStore = new PostStore(session, databaseExecutorContext)
   private val postService = new PostService(postStore)
 
-  private val listPostsEndpoint = path("posts") {
-    get {
-      complete(postService.retrieveAllFromCache())
-    }
-  }
-
-  private val findPostEndpoint = path("posts"/Segment) { slug =>
-    get {
-      complete(postService.findBySlug(slug))
-    }
-  }
-
-  private val routes = listPostsEndpoint ~ findPostEndpoint
-
   private val bindingFuture =
-    Http().bindAndHandle(routes, "0.0.0.0", 8080)
-
+    Http().bindAndHandle(ApiRoutes.routes, "0.0.0.0", 8080) // TODO: make these config
   def main(args: Array[String]): Unit = {
     bindingFuture.onComplete {
       case Success(serverBinding) => {

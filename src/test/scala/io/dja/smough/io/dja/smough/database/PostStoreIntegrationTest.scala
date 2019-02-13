@@ -7,7 +7,6 @@ import io.dja.smough.database.{PostSchema, PostStore}
 import io.dja.smough.domain.Post
 import io.dja.smough.test.util.IntegrationTest
 import org.mockito.ArgumentMatchersSugar
-import org.scalatest.matchers.HavePropertyMatcher
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, FunSuite, MustMatchers}
 import scalikejdbc._
