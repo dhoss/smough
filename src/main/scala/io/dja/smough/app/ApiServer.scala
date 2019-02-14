@@ -1,16 +1,17 @@
-package io.dja.smough
+package io.dja.smough.app
 
 import java.util.concurrent.Executors
 
-import scala.util.{Failure, Success}
-import akka.http.scaladsl.Http
 import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import io.dja.smough.database.PostStore
-import scalikejdbc._
 import io.dja.smough.service.PostService
+import io.dja.smough.{ApiRoutes, WithLogger}
+import scalikejdbc.{AutoSession, ConnectionPool, ConnectionPoolSettings, DBSession}
 
 import scala.concurrent.ExecutionContext
+import scala.util.{Failure, Success}
 
 object ApiServer extends WithLogger {
 
@@ -38,9 +39,10 @@ object ApiServer extends WithLogger {
 
   private val postStore = new PostStore(session, databaseExecutorContext)
   private val postService = new PostService(postStore)
+  private val routes = new ApiRoutes(postService)
 
   private val bindingFuture =
-    Http().bindAndHandle(ApiRoutes.routes, "0.0.0.0", 8080) // TODO: make these config
+    Http().bindAndHandle(routes(), "0.0.0.0", 8080) // TODO: make these config
   def main(args: Array[String]): Unit = {
     bindingFuture.onComplete {
       case Success(serverBinding) => {

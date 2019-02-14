@@ -1,8 +1,5 @@
 package io.dja.smough.io.dja.smough.database
 
-import java.time.OffsetDateTime
-import java.util.concurrent.Executors
-
 import io.dja.smough.database.{PostSchema, PostStore}
 import io.dja.smough.domain.Post
 import io.dja.smough.test.util.IntegrationTest
@@ -10,8 +7,7 @@ import org.mockito.ArgumentMatchersSugar
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, FunSuite, MustMatchers}
 import scalikejdbc._
-
-import scala.concurrent.ExecutionContext
+import io.dja.smough.test.PostFixtures._
 
 class PostStoreIntegrationTest extends FunSuite
   with MockitoSugar
@@ -21,31 +17,13 @@ class PostStoreIntegrationTest extends FunSuite
   with BeforeAndAfterEach
   with MustMatchers {
 
-  val connectionPoolSettings = ConnectionPoolSettings(
-    initialSize = 1,
-    maxSize = 10)
-
-  // TODO: /!\ MOVE THESE /!\
   ConnectionPool.singleton(
-    "jdbc:postgresql://localhost:5432/smough_test",
-    "smough_test",
-    "smough_test",
+    jdbcUrl,
+    dbUser,
+    dbPassword,
     connectionPoolSettings)
 
-  lazy val session: DBSession = AutoSession
-  lazy val databaseExecutorContext: ExecutionContext =
-    ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(10))
-
   val postStore = new PostStore(session, databaseExecutorContext)
-
-  val expectedPost = Post(
-    None,
-    "test post",
-    Some("test-post"),
-    "this is a test post",
-    1,
-    Some(OffsetDateTime.now.withNano(0)),
-    Some(OffsetDateTime.now.withNano(0)))
 
   override def beforeEach() {
     // TODO: maybe make these fixtures
@@ -145,26 +123,5 @@ class PostStoreIntegrationTest extends FunSuite
       "updatedOn" -> p.updatedOn)
   }
 
-  private def insertFixtures(): Unit = {
-    DB.localTx { implicit session =>
-      sql"""
-         INSERT INTO post(title, slug, body, author, created_on, updated_on)
-         VALUES(
-            ${expectedPost.title},
-            ${expectedPost.slug},
-            ${expectedPost.body},
-            ${expectedPost.author},
-            ${expectedPost.createdOn},
-            ${expectedPost.updatedOn})
-       """.update.apply()
-    }
-  }
 
-  private def deleteFixtures(): Unit = {
-    DB.localTx { implicit session =>
-      sql"""
-            DELETE FROM post
-       """.update.apply()
-    }
-  }
 }

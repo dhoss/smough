@@ -4,11 +4,7 @@ import akka.http.scaladsl.server.Directives._
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.dja.smough.service.PostService
 
-object ApiRoutes {
-
-  private var postService: PostService = _
-
-  def apply(ps: PostService) = postService = ps
+class ApiRoutes(val postService: PostService) {
 
   val listPostsEndpoint = path("posts") {
     get {
@@ -23,5 +19,7 @@ object ApiRoutes {
   }
 
   val routes = listPostsEndpoint ~ findPostEndpoint
+
+  def apply() = routes
 
 }
