@@ -26,11 +26,18 @@ class ApiRoutesTest extends FunSuite
   before {
     implicit val timeout = RouteTestTimeout(5.seconds dilated)
     when(postService.retrieveAllFromCache()).thenReturn(expectedPostCache)
+    when(postService.findBySlug(any[String])).thenReturn(Option(expectedPost))
   }
 
   test("/posts") {
     Get("/posts") ~> routes.listPostsEndpoint ~> check {
-      responseAs[String] must equal(expectedPostsJson.noSpaces)
+      responseAs[String] must equal(expectedPostsJson)
+    }
+  }
+
+  test("/posts/id") {
+    Get("/posts/test-post") ~> routes.findPostEndpoint ~> check {
+      responseAs[String] must equal(expectedPostJson)
     }
   }
 }
