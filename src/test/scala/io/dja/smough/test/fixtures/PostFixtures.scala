@@ -23,7 +23,7 @@ object PostFixtures {
     Some(OffsetDateTime.now.withNano(0)),
     Some(OffsetDateTime.now.withNano(0)))
 
-  val postJson = Json.obj(
+  val expectedPostJson = Json.obj(
     "id" -> expectedPost.id.asJson,
     "parent" -> expectedPost.parent.asJson,
     "title" -> expectedPost.title.asJson,
@@ -33,10 +33,9 @@ object PostFixtures {
     "createdOn" -> expectedPost.createdOn.asJson,
     "updatedOn" -> expectedPost.updatedOn.asJson)
 
-  val expectedPostJson = postJson.noSpaces
 
   val expectedPostsJson = Json.obj(
-    expectedPost.slug.get -> postJson).noSpaces
+    expectedPost.slug.get -> expectedPostJson)
 
   val connectionPoolSettings = ConnectionPoolSettings(
     initialSize = 1,

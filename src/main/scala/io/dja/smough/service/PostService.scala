@@ -46,15 +46,23 @@ class PostService(val postStore: PostStore) extends WithLogger {
     }
   }
 
-  def delete(post: Post): Unit = {
-    if (post.id.isDefined) {
-      val id = post.id.get
-      log.info(s"Deleting Post(${id})")
-      removeFromCache(post)
-      postStore.delete(id)
+  // TODO: is IllegalArgumentException the best exception here?
+  def delete(id: Int): Unit = {
+    val post = postStore.findById(id)
+    post match {
+      case Some(p) =>
+        if (p.id.isDefined) {
+          val id = p.id.get
+          log.info(s"Deleting Post(${id})")
+          removeFromCache(p)
+          postStore.delete(id)
+        }
+      case None => throw new IllegalArgumentException(s"No such post ${id}")
     }
   }
 
+  // TODO: do we want to pass in the slug and a map of fields to be changed?
+  // or an UpdatePost object?
   def update(post: Post): Unit = {
     log.info(s"Updating Post(${post.slug}) in database")
     postStore.update(post)

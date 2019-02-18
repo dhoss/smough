@@ -69,6 +69,13 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
       .map(PostSchema.apply).single().apply
   }
 
+  // TODO: this SQL needs to be moved to a common method or something
+  def findById(id: Int): Option[Post] = DB.readOnly { implicit s =>
+    log.info(s"Loading ${id} from database")
+    sql"""select id, parent, title, slug, body, author, created_on, updated_on from post where id=${id}"""
+      .map(PostSchema.apply).single().apply
+  }
+
   // TODO: add pagination
   def retrieveAll(): List[Post] = DB.readOnly { implicit s =>
     log.info("Loading all posts from database")
