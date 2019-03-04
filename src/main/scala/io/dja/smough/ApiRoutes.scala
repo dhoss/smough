@@ -1,7 +1,7 @@
 package io.dja.smough
 
 import akka.http.scaladsl.server.Directives._
-import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
+import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import io.dja.smough.domain.Post
 import io.dja.smough.service.PostService
 

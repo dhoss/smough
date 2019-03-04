@@ -3,10 +3,9 @@ package io.dja.smough.test
 import java.time.OffsetDateTime
 import java.util.concurrent.Executors
 
-import io.circe.Json
 import io.dja.smough.domain.Post
 import scalikejdbc._
-import io.circe.syntax._
+import play.api.libs.json.Json
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
@@ -24,14 +23,14 @@ object PostFixtures {
     Some(OffsetDateTime.now.withNano(0)))
 
   val expectedPostJson = Json.obj(
-    "id" -> expectedPost.id.asJson,
-    "parent" -> expectedPost.parent.asJson,
-    "title" -> expectedPost.title.asJson,
-    "slug" -> expectedPost.slug.asJson,
-    "body" -> expectedPost.body.asJson,
-    "author" -> expectedPost.author.asJson,
-    "createdOn" -> expectedPost.createdOn.asJson,
-    "updatedOn" -> expectedPost.updatedOn.asJson)
+    "id" -> expectedPost.id,
+    "parent" -> expectedPost.parent,
+    "title" -> expectedPost.title,
+    "slug" -> expectedPost.slug,
+    "body" -> expectedPost.body,
+    "author" -> expectedPost.author,
+    "createdOn" -> expectedPost.createdOn,
+    "updatedOn" -> expectedPost.updatedOn)
 
 
   val expectedPostsJson = Json.obj(

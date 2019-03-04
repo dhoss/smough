@@ -2,8 +2,7 @@ package io.dja.smough
 
 import java.time.OffsetDateTime
 
-import io.circe.syntax._
-import io.circe._
+import play.api.libs.json.Json
 
 package object domain {
   // We don't need to pass in an ID unless we're constructing the Post DTO
@@ -20,6 +19,8 @@ package object domain {
     id: Option[Int] = None)
 
   object Post {
+    implicit val postFormat = Json.format[Post]
+    /*
     implicit val encoder: Encoder[Post] = (a: Post) => {
       Json.obj(
         "id" -> a.id.asJson,
@@ -45,6 +46,7 @@ package object domain {
         updatedOn <- c.downField("updatedOn").as[OffsetDateTime]
       } yield Post(parent, title, slug, body, author, Some(createdOn), Some(updatedOn), Some(id))
     }
+    */
   }
 
   class StringToSlug(val s: String) {
@@ -52,4 +54,20 @@ package object domain {
   }
 
   implicit def sluggify(s: String) = new StringToSlug(s)
+
+  case class Result(message: String)
+  object Result {
+    implicit val resultFormat = Json.format[Result]
+    /*
+    implicit val encoder: Encoder[Result] = (a: Result) => {
+      Json.obj(
+        "message" -> a.message.asJson
+      )
+    }
+
+    implicit val decoder: Decoder[Result] = (c: HCursor) => {
+      Result(c.downField("message").as[String].toString)
+    }
+    */
+  }
 }

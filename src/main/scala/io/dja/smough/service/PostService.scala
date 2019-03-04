@@ -26,7 +26,8 @@ class PostService(val postStore: PostStore) extends WithLogger {
     log.info("Cache is not empty")
   }
 
-  def insert(post: Post): Unit = {
+  // TODO: deal with exceptions
+  def insert(post: Post): Result = {
     // TODO: There has to be a better way to do this
     val postWithSlug = Post(
       parent = post.parent,
@@ -44,10 +45,11 @@ class PostService(val postStore: PostStore) extends WithLogger {
       log.info(s"Updating cache with Post(${postWithSlug.slug}")
       addToCache(postWithSlug)
     }
+    Result(s"Created \"${postWithSlug.title}\"")
   }
 
   // TODO: is IllegalArgumentException the best exception here?
-  def delete(id: Int): Unit = {
+  def delete(id: Int): Result = {
     val post = postStore.findById(id)
     post match {
       case Some(p) =>
@@ -59,16 +61,18 @@ class PostService(val postStore: PostStore) extends WithLogger {
         }
       case None => throw new IllegalArgumentException(s"No such post ${id}")
     }
+    Result(s"Deleted ${post.get.title}")
   }
 
   // TODO: do we want to pass in the slug and a map of fields to be changed?
   // or an UpdatePost object?
-  def update(post: Post): Unit = {
+  def update(post: Post): Result = {
     log.info(s"Updating Post(${post.slug}) in database")
     postStore.update(post)
 
     log.info(s"Updating Post(${post.slug}) in cache")
     addToCache(post)
+    Result(s"Updated ${post.title}")
   }
 
   // TODO: add pagination

@@ -82,10 +82,10 @@ class PostServiceTest extends FunSuite
   }
 
   test("Delete a post") {
-    postService.delete(expectedPost)
+    postService.delete(expectedPost.id.get)
     verify(postStore, times(1)).delete(any[Int])
     verifyNoMoreInteractions(postStore)
     assert(0 == postService.retrieveAllFromCache().size)
-    postService.delete(expectedPost)
+    postService.delete(expectedPost.id.get)
   }
 }
