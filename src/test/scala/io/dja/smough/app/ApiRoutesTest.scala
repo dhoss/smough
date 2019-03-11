@@ -46,6 +46,8 @@ class ApiRoutesTest extends FunSuite
         .thenReturn(Result("Created `test post`"))
     when(postService.update(any[Post]))
         .thenReturn(Result("Updated `test post`"))
+    when(postService.delete(any[Int]))
+        .thenReturn(Result("Deleted `test post`"))
   }
 
   test("GET /posts") {
@@ -76,4 +78,10 @@ class ApiRoutesTest extends FunSuite
     }
   }
 
+  test("DELETE /posts/id") {
+    Delete("/posts/1") ~> routes.deletePostEndpoint ~> check {
+      status must equal(StatusCodes.OK)
+      responseAs[JsValue] must equal(expectedPostDeletedResponseJson)
+    }
+  }
 }
