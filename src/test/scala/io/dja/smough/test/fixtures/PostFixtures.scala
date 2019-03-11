@@ -38,6 +38,14 @@ object PostFixtures {
     "message" -> s"Created `${expectedPost.title}`"
   )
 
+  val expectedPostUpdatedResponseJson: JsValue = Json.obj(
+    "message" -> s"Updated `${expectedPost.title}`"
+  )
+
+  val expectedPostDeletedResponseJson: JsValue = Json.obj(
+    "message" -> s"Deleted `${expectedPost.title}`"
+  )
+
   val expectedPostsJson: JsValue = Json.obj(
     expectedPost.slug.get -> expectedPostJson)
 

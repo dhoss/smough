@@ -23,14 +23,31 @@ class ApiRoutesTest extends FunSuite
 
   val postService = mock[PostService]
   val routes = new ApiRoutes(postService)
+  val jsonEntity = HttpEntity(`application/json`,
+    s"""
+{
+  "id": null,
+  "parent": null,
+  "title": "${expectedPost.title}",
+  "slug": "${expectedPost.slug.get}",
+  "body": "${expectedPost.body}",
+  "author": ${expectedPost.author},
+  "createdOn": "${expectedPost.createdOn.get}",
+  "updatedOn": "${expectedPost.updatedOn.get}"
+}
+      """.stripMargin)
 
   before {
-    when(postService.retrieveAllFromCache()).thenReturn(expectedPostCache)
-    when(postService.findBySlug(any[String])).thenReturn(Option(expectedPost))
-    when(postService.insert(any[Post])).thenReturn(Result("Created `test post`"))
+    when(postService.retrieveAllFromCache())
+        .thenReturn(expectedPostCache)
+    when(postService.findBySlug(any[String]))
+        .thenReturn(Option(expectedPost))
+    when(postService.insert(any[Post]))
+        .thenReturn(Result("Created `test post`"))
+    when(postService.update(any[Post]))
+        .thenReturn(Result("Updated `test post`"))
   }
 
-  // TODO add status code check
   test("GET /posts") {
     Get("/posts") ~> routes.listPostsEndpoint ~> check {
       status must equal(StatusCodes.OK)
@@ -38,7 +55,6 @@ class ApiRoutesTest extends FunSuite
     }
   }
 
-  // TODO add status code check
   test("GET /posts/slug") {
     Get("/posts/test-post") ~> routes.findPostEndpoint ~> check {
       status must equal(StatusCodes.OK)
@@ -47,22 +63,17 @@ class ApiRoutesTest extends FunSuite
   }
 
   test("POST /posts") {
-    val json =
-      s"""
-        |{
-        |  "id": null,
-        |  "parent": null,
-        |  "title": "${expectedPost.title}",
-        |  "slug": "${expectedPost.slug.get}",
-        |  "body": "${expectedPost.body}",
-        |  "author": ${expectedPost.author},
-        |  "createdOn": "${expectedPost.createdOn.get}",
-        |  "updatedOn": "${expectedPost.updatedOn.get}"
-        |}
-      """.stripMargin
-    Post("/posts", HttpEntity(`application/json`, json)) ~> routes.createPostEndpoint ~> check {
+    Post("/posts", jsonEntity) ~> routes.createPostEndpoint ~> check {
       status must equal(StatusCodes.Created)
       responseAs[JsValue] must equal (expectedPostCreatedResponseJson)
     }
   }
+
+  test("PUT /posts") {
+    Put("/posts", jsonEntity) ~> routes.updatePostEndpoint ~> check {
+      status must equal(StatusCodes.OK)
+      responseAs[JsValue] must equal(expectedPostUpdatedResponseJson)
+    }
+  }
+
 }

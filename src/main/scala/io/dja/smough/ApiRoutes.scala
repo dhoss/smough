@@ -33,11 +33,7 @@ class ApiRoutes(val postService: PostService) {
     }
   }
 
-  // TODO: right now not using the slug in the update
-  // we could either pass in a UpdatePost object and use the slug as a method parameter
-  // or build a new Post object and assign the slug
-  // or ???
-  val updatePostEndpoint = path("posts"/Segment) { slug =>
+  val updatePostEndpoint = path("posts") {
     put {
       entity(as[Post]) { post =>
         complete(postService.update(post))

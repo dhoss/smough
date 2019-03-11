@@ -36,6 +36,19 @@ class PostServiceTest extends FunSuite
     when(postStore.delete(any[Int])).thenReturn(1)
   }
 
+  test("Retrieve all from cache") {
+    // should start out empty
+    Map.empty[String, Post] must equal(postService.retrieveAllFromCache())
+    postService.loadPosts()
+    verify(postStore, times(1)).retrieveAll()
+    verifyNoMoreInteractions(postStore)
+    Map(
+      expectedPost.slug.get -> expectedPost) must equal(
+      postService.retrieveAllFromCache())
+    // make sure to breakout if the cache isn't empty
+    postService.loadPosts()
+  }
+
   // TODO: do we even need to check to make sure the cache is empty or anything besides the
   // verification to make sure the Store method is called and that there are no more interactions?
   test("Insert new post") {
@@ -66,19 +79,6 @@ class PostServiceTest extends FunSuite
     Option(expectedPost) must equal(
       postService.findBySlug("test-post"))
     verify(postStore).findBySlug(any[String])
-  }
-
-  test("Retrieve all from cache") {
-    // should start out empty
-    Map.empty[String, Post] must equal(postService.retrieveAllFromCache())
-    postService.loadPosts()
-    verify(postStore, times(1)).retrieveAll()
-    verifyNoMoreInteractions(postStore)
-    Map(
-      expectedPost.slug.get -> expectedPost) must equal(
-      postService.retrieveAllFromCache())
-    // make sure to breakout if the cache isn't empty
-    postService.loadPosts()
   }
 
   test("Delete a post") {
