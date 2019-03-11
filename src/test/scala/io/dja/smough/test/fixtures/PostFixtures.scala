@@ -20,7 +20,9 @@ object PostFixtures {
     "this is a test post",
     1,
     Some(OffsetDateTime.now.withNano(0)),
-    Some(OffsetDateTime.now.withNano(0)))
+    Some(OffsetDateTime.now.withNano(0)),
+    Some(1)
+  )
 
   val expectedPostJson: JsValue = Json.obj(
     "id" -> expectedPost.id,

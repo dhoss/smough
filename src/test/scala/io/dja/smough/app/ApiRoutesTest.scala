@@ -31,7 +31,6 @@ class ApiRoutesTest extends FunSuite
   // TODO add status code check
   test("GET /posts") {
     Get("/posts") ~> routes.listPostsEndpoint ~> check {
-      //responseAs[Map[String, Post]] must equal(expectedPostsJson)
       responseAs[JsValue] must equal(expectedPostsJson)
     }
   }
@@ -39,7 +38,6 @@ class ApiRoutesTest extends FunSuite
   // TODO add status code check
   test("GET /posts/slug") {
     Get("/posts/test-post") ~> routes.findPostEndpoint ~> check {
-      //responseAs[Map[String, Post]] must equal(expectedPostJson)
       responseAs[JsValue] must equal(expectedPostJson)
     }
   }
