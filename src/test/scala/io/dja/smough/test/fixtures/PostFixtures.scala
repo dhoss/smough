@@ -35,7 +35,7 @@ object PostFixtures {
     "updatedOn" -> expectedPost.updatedOn)
 
   val expectedPostCreatedResponseJson: JsValue = Json.obj(
-    "message" -> s"Created ${expectedPost.title}"
+    "message" -> s"Created `${expectedPost.title}`"
   )
 
   val expectedPostsJson: JsValue = Json.obj(

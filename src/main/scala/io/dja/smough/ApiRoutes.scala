@@ -1,5 +1,6 @@
 package io.dja.smough
 
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import io.dja.smough.domain.Post
@@ -19,7 +20,7 @@ class ApiRoutes(val postService: PostService) {
 
   val findPostEndpoint = path("posts"/Segment) { slug =>
     get {
-      complete(postService.findBySlug(slug))
+      complete(StatusCodes.OK, postService.findBySlug(slug))
     }
   }
 
@@ -27,7 +28,7 @@ class ApiRoutes(val postService: PostService) {
   val createPostEndpoint = path("posts") {
     post {
       entity(as[Post]) { post =>
-        complete(postService.insert(post))
+        complete(StatusCodes.Created, postService.insert(post))
       }
     }
   }

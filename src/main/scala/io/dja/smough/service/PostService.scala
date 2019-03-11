@@ -45,7 +45,7 @@ class PostService(val postStore: PostStore) extends WithLogger {
       log.info(s"Updating cache with Post(${postWithSlug.slug}")
       addToCache(postWithSlug)
     }
-    Result(s"Created ${postWithSlug.title}")
+    Result(s"Created `${postWithSlug.title}`")
   }
 
   // TODO: is IllegalArgumentException the best exception here?
@@ -61,7 +61,7 @@ class PostService(val postStore: PostStore) extends WithLogger {
         }
       case None => throw new IllegalArgumentException(s"No such post ${id}")
     }
-    Result(s"Deleted ${post.get.title}")
+    Result(s"Deleted `${post.get.title}`")
   }
 
   def update(post: Post): Result = {
@@ -70,25 +70,21 @@ class PostService(val postStore: PostStore) extends WithLogger {
 
     log.info(s"Updating Post(${post.slug}) in cache")
     addToCache(post)
-    Result(s"Updated ${post.title}")
+    Result(s"Updated `${post.title}`")
   }
 
   // TODO: add pagination
   def retrieveAllFromCache(): mutable.HashMap[String, Post] = {
     log.info("Retrieving posts from cache")
-    val ps = postCache.synchronized(postCache)
-    log.debug(s"**** RETURNING LIST ${ps}")
-    ps
+    postCache.synchronized(postCache)
   }
 
   // TODO: calling synchronized everywhere is probably not good
   def findBySlug(slug: String): Option[Post] = {
     log.info(s"Attempting to find Post(${slug}) in cache")
-    val p = Option(
+    Option(
       postCache.synchronized(
         postCache.getOrElseUpdate(slug, postStore.findBySlug(slug).get)))
-    log.debug(s"***** RETURNING ${p}")
-    p
   }
 
   private def cacheIsEmpty(): Boolean =

@@ -1,9 +1,11 @@
 package io.dja.smough.app
 
+import akka.http.scaladsl.model.MediaTypes.`application/json`
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import io.dja.smough.ApiRoutes
+import io.dja.smough.domain.{Post, Result}
 import io.dja.smough.service.PostService
 import io.dja.smough.test.PostFixtures._
 import org.mockito.ArgumentMatchersSugar
@@ -23,9 +25,9 @@ class ApiRoutesTest extends FunSuite
   val routes = new ApiRoutes(postService)
 
   before {
-   // implicit val timeout = RouteTestTimeout(5.seconds dilated)
     when(postService.retrieveAllFromCache()).thenReturn(expectedPostCache)
     when(postService.findBySlug(any[String])).thenReturn(Option(expectedPost))
+    when(postService.insert(any[Post])).thenReturn(Result("Created `test post`"))
   }
 
   // TODO add status code check
@@ -43,7 +45,20 @@ class ApiRoutesTest extends FunSuite
   }
 
   test("POST /posts") {
-    Post("/posts", expectedPostJson.toString) ~> routes.createPostEndpoint ~> check {
+    val json =
+      s"""
+        |{
+        |  "id": null,
+        |  "parent": null,
+        |  "title": "${expectedPost.title}",
+        |  "slug": "${expectedPost.slug.get}",
+        |  "body": "${expectedPost.body}",
+        |  "author": ${expectedPost.author},
+        |  "createdOn": "${expectedPost.createdOn.get}",
+        |  "updatedOn": "${expectedPost.updatedOn.get}"
+        |}
+      """.stripMargin
+    Post("/posts", HttpEntity(`application/json`, json)) ~> routes.createPostEndpoint ~> check {
       status mustEqual StatusCodes.Created
       responseAs[JsValue] must equal (expectedPostCreatedResponseJson)
     }
