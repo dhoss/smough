@@ -1,39 +1,17 @@
 package io.dja.smough.domain
 
-import java.time.OffsetDateTime
-
-import org.scalatest.FunSuite
+import org.scalatest.{FunSuite, MustMatchers}
 import play.api.libs.json.Json
+import io.dja.smough.test.PostFixtures._
 
-class DomainTest extends FunSuite {
-
-  // TODO: move this somewhere common
-  val post = Post(
-    None,
-    "test post",
-    Some("test-post"),
-    "this is a test",
-    1,
-    Some(OffsetDateTime.now),
-    Some(OffsetDateTime.now),
-    Some(1))
-
-  val expectedPostJson = Json.obj(
-    "id" -> post.id,
-    "parent" -> post.parent,
-    "title" -> post.title,
-    "slug" -> post.slug,
-    "body" -> post.body,
-    "author" -> post.author,
-    "createdOn" -> post.createdOn,
-    "updatedOn" -> post.updatedOn
-  )
+class DomainTest extends FunSuite
+    with MustMatchers {
 
   test("Encode Post -> JSON") {
-    assert(Json.toJson(post) == expectedPostJson)
+    Json.toJson(expectedPost) must equal(expectedPostJson)
   }
 
   test("Decode JSON -> Post") {
-    assert(expectedPostJson.as[Post] == post)
+    expectedPostJson.as[Post] must equal(expectedPost)
   }
 }
