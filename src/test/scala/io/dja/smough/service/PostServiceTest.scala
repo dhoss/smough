@@ -5,14 +5,15 @@ import java.time.OffsetDateTime
 import io.dja.smough.database.PostStore
 import io.dja.smough.domain.Post
 import org.mockito.ArgumentMatchersSugar
-import org.scalatest.{BeforeAndAfter, FunSuite}
+import org.scalatest.{BeforeAndAfter, FunSuite, MustMatchers}
 import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito.{times, verify, verifyNoMoreInteractions, when}
 
 class PostServiceTest extends FunSuite
     with MockitoSugar
     with ArgumentMatchersSugar
-    with BeforeAndAfter {
+    with BeforeAndAfter
+    with MustMatchers {
 
   val expectedPost = Post(
     None,
@@ -29,6 +30,7 @@ class PostServiceTest extends FunSuite
   before {
     postService = new PostService(postStore)
     when(postStore.findBySlug(any[String])).thenReturn(Option(expectedPost))
+    when(postStore.findById(any[Int])).thenReturn(Option(expectedPost))
     when(postStore.retrieveAll()).thenReturn(List(expectedPost))
     when(postStore.insert(any[Post])).thenReturn(1)
     when(postStore.update(any[Post])).thenReturn(1)
@@ -84,8 +86,6 @@ class PostServiceTest extends FunSuite
   test("Delete a post") {
     postService.delete(expectedPost.id.get)
     verify(postStore, times(1)).delete(any[Int])
-    verifyNoMoreInteractions(postStore)
     assert(0 == postService.retrieveAllFromCache().size)
-    postService.delete(expectedPost.id.get)
   }
 }
