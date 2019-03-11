@@ -3,6 +3,8 @@ package io.dja.smough
 import akka.http.scaladsl.server.Directives._
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import io.dja.smough.domain.Post
+import io.dja.smough.domain.Post._
+import io.dja.smough.domain.Result._
 import io.dja.smough.service.PostService
 
 class ApiRoutes(val postService: PostService) {

@@ -5,7 +5,7 @@ import java.util.concurrent.Executors
 
 import io.dja.smough.domain.Post
 import scalikejdbc._
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
@@ -22,7 +22,7 @@ object PostFixtures {
     Some(OffsetDateTime.now.withNano(0)),
     Some(OffsetDateTime.now.withNano(0)))
 
-  val expectedPostJson = Json.obj(
+  val expectedPostJson: JsValue = Json.obj(
     "id" -> expectedPost.id,
     "parent" -> expectedPost.parent,
     "title" -> expectedPost.title,
@@ -32,8 +32,11 @@ object PostFixtures {
     "createdOn" -> expectedPost.createdOn,
     "updatedOn" -> expectedPost.updatedOn)
 
+  val expectedPostCreatedResponseJson: JsValue = Json.obj(
+    "message" -> s"Created ${expectedPost.title}"
+  )
 
-  val expectedPostsJson = Json.obj(
+  val expectedPostsJson: JsValue = Json.obj(
     expectedPost.slug.get -> expectedPostJson)
 
   val connectionPoolSettings = ConnectionPoolSettings(

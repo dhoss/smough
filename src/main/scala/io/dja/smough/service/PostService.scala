@@ -45,7 +45,7 @@ class PostService(val postStore: PostStore) extends WithLogger {
       log.info(s"Updating cache with Post(${postWithSlug.slug}")
       addToCache(postWithSlug)
     }
-    Result(s"Created \"${postWithSlug.title}\"")
+    Result(s"Created ${postWithSlug.title}")
   }
 
   // TODO: is IllegalArgumentException the best exception here?
@@ -64,8 +64,6 @@ class PostService(val postStore: PostStore) extends WithLogger {
     Result(s"Deleted ${post.get.title}")
   }
 
-  // TODO: do we want to pass in the slug and a map of fields to be changed?
-  // or an UpdatePost object?
   def update(post: Post): Result = {
     log.info(s"Updating Post(${post.slug}) in database")
     postStore.update(post)
@@ -78,17 +76,23 @@ class PostService(val postStore: PostStore) extends WithLogger {
   // TODO: add pagination
   def retrieveAllFromCache(): mutable.HashMap[String, Post] = {
     log.info("Retrieving posts from cache")
-    postCache.synchronized(postCache)
+    val ps = postCache.synchronized(postCache)
+    log.debug(s"**** RETURNING LIST ${ps}")
+    ps
   }
 
+  // TODO: calling synchronized everywhere is probably not good
   def findBySlug(slug: String): Option[Post] = {
     log.info(s"Attempting to find Post(${slug}) in cache")
-    Option(
+    val p = Option(
       postCache.synchronized(
         postCache.getOrElseUpdate(slug, postStore.findBySlug(slug).get)))
+    log.debug(s"***** RETURNING ${p}")
+    p
   }
 
-  private def cacheIsEmpty(): Boolean = postCache.synchronized(postCache.isEmpty)
+  private def cacheIsEmpty(): Boolean =
+    postCache.synchronized(postCache.isEmpty)
 
   private def cacheContains(slug: String): Boolean =
     postCache.synchronized(

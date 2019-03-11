@@ -2,9 +2,8 @@ package io.dja.smough.domain
 
 import java.time.OffsetDateTime
 
-import io.circe.Json
 import org.scalatest.FunSuite
-import io.circe.syntax._
+import play.api.libs.json.Json
 
 class DomainTest extends FunSuite {
 
@@ -20,23 +19,21 @@ class DomainTest extends FunSuite {
     Some(1))
 
   val expectedPostJson = Json.obj(
-    "id" -> post.id.asJson,
-    "parent" -> post.parent.asJson,
-    "title" -> post.title.asJson,
-    "slug" -> post.slug.asJson,
-    "body" -> post.body.asJson,
-    "author" -> post.author.asJson,
-    "createdOn" -> post.createdOn.asJson,
-    "updatedOn" -> post.updatedOn.asJson
+    "id" -> post.id,
+    "parent" -> post.parent,
+    "title" -> post.title,
+    "slug" -> post.slug,
+    "body" -> post.body,
+    "author" -> post.author,
+    "createdOn" -> post.createdOn,
+    "updatedOn" -> post.updatedOn
   )
 
   test("Encode Post -> JSON") {
-    assert(post.asJson == expectedPostJson)
+    assert(Json.toJson(post) == expectedPostJson)
   }
 
   test("Decode JSON -> Post") {
-    // TODO: find out a better way than just Right(post)
-    // can you call .get on Right or something?
-    assert(expectedPostJson.as[Post] == Right(post))
+    assert(expectedPostJson.as[Post] == post)
   }
 }
