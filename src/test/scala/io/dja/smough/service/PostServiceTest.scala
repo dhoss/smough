@@ -1,20 +1,19 @@
 package io.dja.smough.service
 
-import java.time.OffsetDateTime
-
 import io.dja.smough.database.PostStore
 import io.dja.smough.domain.Post
+import io.dja.smough.test.PostFixtures._
 import org.mockito.ArgumentMatchersSugar
-import org.scalatest.{BeforeAndAfter, FunSuite, MustMatchers}
-import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito.{times, verify, verifyNoMoreInteractions, when}
+import org.scalatest.mockito.MockitoSugar
+import org.scalatest.{BeforeAndAfter, FunSuite, MustMatchers}
 
 class PostServiceTest extends FunSuite
     with MockitoSugar
     with ArgumentMatchersSugar
     with BeforeAndAfter
     with MustMatchers {
-
+/*
   val expectedPost = Post(
     None,
     "test post",
@@ -24,7 +23,7 @@ class PostServiceTest extends FunSuite
     Some(OffsetDateTime.now),
     Some(OffsetDateTime.now),
     Some(1))
-
+*/
   var postService: PostService = _
   val postStore = mock[PostStore]
   before {
@@ -51,7 +50,7 @@ class PostServiceTest extends FunSuite
     postService.insert(postWithoutSlug)
     verify(postStore, times(1)).insert(any[Post])
     verifyNoMoreInteractions(postStore)
-    assert(1 == postService.retrieveAllFromCache().size)
+    1 must equal(postService.retrieveAllFromCache().size)
     postService.insert(expectedPost)
   }
 
@@ -59,26 +58,25 @@ class PostServiceTest extends FunSuite
     postService.update(expectedPost)
     verify(postStore, times(1)).update(any[Post])
     verifyNoMoreInteractions(postStore)
-    assert(1 == postService.retrieveAllFromCache().size)
+    1 must equal(postService.retrieveAllFromCache().size)
     postService.insert(expectedPost)
   }
 
   test("Find by slug") {
-    assert(Option(expectedPost) == postService.findBySlug("test-post"))
+    Option(expectedPost) must equal(
+      postService.findBySlug("test-post"))
     verify(postStore).findBySlug(any[String])
   }
 
   test("Retrieve all from cache") {
     // should start out empty
-    assert(
-      Map() == postService.retrieveAllFromCache())
+    Map.empty[String, Post] must equal(postService.retrieveAllFromCache())
     postService.loadPosts()
     verify(postStore, times(1)).retrieveAll()
     verifyNoMoreInteractions(postStore)
-    assert(
-      Map(
-        // TODO DEAL WITH THIS BETTER
-        expectedPost.slug.get -> expectedPost) == postService.retrieveAllFromCache())
+    Map(
+      expectedPost.slug.get -> expectedPost) must equal(
+      postService.retrieveAllFromCache())
     // make sure to breakout if the cache isn't empty
     postService.loadPosts()
   }
@@ -86,6 +84,6 @@ class PostServiceTest extends FunSuite
   test("Delete a post") {
     postService.delete(expectedPost.id.get)
     verify(postStore, times(1)).delete(any[Int])
-    assert(0 == postService.retrieveAllFromCache().size)
+    0 must equal(postService.retrieveAllFromCache().size)
   }
 }
