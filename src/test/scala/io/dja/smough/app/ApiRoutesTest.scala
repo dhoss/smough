@@ -33,6 +33,7 @@ class ApiRoutesTest extends FunSuite
   // TODO add status code check
   test("GET /posts") {
     Get("/posts") ~> routes.listPostsEndpoint ~> check {
+      status must equal(StatusCodes.OK)
       responseAs[JsValue] must equal(expectedPostsJson)
     }
   }
@@ -40,6 +41,7 @@ class ApiRoutesTest extends FunSuite
   // TODO add status code check
   test("GET /posts/slug") {
     Get("/posts/test-post") ~> routes.findPostEndpoint ~> check {
+      status must equal(StatusCodes.OK)
       responseAs[JsValue] must equal(expectedPostJson)
     }
   }
@@ -59,7 +61,7 @@ class ApiRoutesTest extends FunSuite
         |}
       """.stripMargin
     Post("/posts", HttpEntity(`application/json`, json)) ~> routes.createPostEndpoint ~> check {
-      status mustEqual StatusCodes.Created
+      status must equal(StatusCodes.Created)
       responseAs[JsValue] must equal (expectedPostCreatedResponseJson)
     }
   }
