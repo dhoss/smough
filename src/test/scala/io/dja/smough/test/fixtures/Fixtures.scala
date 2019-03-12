@@ -57,14 +57,10 @@ object Fixtures {
     "id" -> expectedCategory.id.get,
     "name" -> expectedCategory.name)
 
+  // TODO: possibly put into config
   val connectionPoolSettings = ConnectionPoolSettings(
     initialSize = 1,
     maxSize = 10)
-
-  // TODO: get from config
-  val jdbcUrl = "jdbc:postgresql://localhost:5433/smough_test"
-  val dbUser = "smough_test"
-  val dbPassword = "smough_test"
 
   lazy val session: DBSession = AutoSession
   lazy val databaseExecutorContext: ExecutionContext =

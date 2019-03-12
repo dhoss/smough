@@ -1,5 +1,6 @@
 package io.dja.smough.io.dja.smough.database
 
+import io.dja.smough.app.Configuration
 import io.dja.smough.database.{PostSchema, PostStore}
 import io.dja.smough.domain.Post
 import io.dja.smough.test.util.IntegrationTest
@@ -20,6 +21,9 @@ class PostStoreIntegrationTest extends FunSuite
   with BeforeAndAfterAll
   with MustMatchers {
 
+  val jdbcUrl = Configuration.jdbcUrl
+  val dbUser = Configuration.dbUser
+  val dbPassword = Configuration.dbPassword
 
   ConnectionPool.singleton(
     jdbcUrl,
@@ -93,6 +97,11 @@ class PostStoreIntegrationTest extends FunSuite
 
   test("find by slug", IntegrationTest) {
     assertPostEquals(expectedPost, postStore.findBySlug("test-post").get)
+  }
+
+  test("find by id", IntegrationTest) {
+    val postFromDb = findPostFromDb().get
+    assertPostEquals(expectedPost, postStore.findById(postFromDb.id.get).get)
   }
 
   // TODO: test pagination
