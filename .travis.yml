@@ -16,10 +16,10 @@ before_script:
   - ./cc-test-reporter before-build
 before_install:
   - sudo cp /etc/postgresql/{9.6,10}/main/pg_hba.conf
-  - sudo service postgresql 9.4 stop
-  - sudo service postgresql 9.5 stop
-  - sudo service postgresql 9.6 stop
-  - sudo service postgresql 10 restart
+  - sudo service postgresql stop 9.4
+  - sudo service postgresql stop 9.5
+  - sudo service postgresql stop 9.6
+  - sudo service postgresql restart 10
 scala:
   - 2.12.7
 script:
