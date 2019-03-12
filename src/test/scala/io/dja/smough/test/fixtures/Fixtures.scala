@@ -62,7 +62,7 @@ object Fixtures {
     maxSize = 10)
 
   // TODO: get from config
-  val jdbcUrl = "jdbc:postgresql://localhost:5432/smough_test"
+  val jdbcUrl = "jdbc:postgresql://localhost:5433/smough_test"
   val dbUser = "smough_test"
   val dbPassword = "smough_test"
 
