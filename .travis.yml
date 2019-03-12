@@ -16,9 +16,7 @@ before_script:
 before_install:
   - sudo cp /etc/postgresql/{9.6,10}/main/pg_hba.conf
   - sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf
-  - sudo service postgresql status 10
   - sudo service postgresql restart 10
-  - sudo service postgresql status 10
 scala:
   - 2.12.7
 script:
