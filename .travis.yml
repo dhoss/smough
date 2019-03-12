@@ -16,9 +16,7 @@ before_script:
   - ./cc-test-reporter before-build
 before_install:
   - sudo cp /etc/postgresql/{9.6,10}/main/pg_hba.conf
-  - sudo service postgresql stop 9.4
-  - sudo service postgresql stop 9.5
-  - sudo service postgresql stop 9.6
+  - sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf
   - sudo service postgresql start 10
 scala:
   - 2.12.7
