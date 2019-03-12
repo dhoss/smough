@@ -1,15 +1,22 @@
 env:
   global:
     - CC_TEST_REPORTER_ID=118f05d9d9e5c1df42b52d2d973db299c8c1de12e7c2dcd24d5f992e22cfaafa
+    - PGPORT=5433
 language: java
 services:
   - postgresql
 addons:
-  postgresql: "11"
+  postgresql: "10"
+  apt:
+    packages:
+    - postgresql-10
+    - postgresql-client-10
 before_script:
   - ./ci-install-dependencies.sh
   - ./cc-test-reporter before-build
-
+before_install:
+  - sudo cp /etc/postgresql/{9.6,10}/main/pg_hba.conf
+  - sudo /etc/init.d/postgresql restart
 scala:
   - 2.12.7
 script:
