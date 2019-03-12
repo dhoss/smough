@@ -16,11 +16,14 @@ before_script:
   - ./cc-test-reporter before-build
 before_install:
   - sudo cp /etc/postgresql/{9.6,10}/main/pg_hba.conf
-  - sudo /etc/init.d/postgresql restart
+  - sudo service postgresql 9.4 stop
+  - sudo service postgresql 9.5 stop
+  - sudo service postgresql 9.6 stop
+  - sudo service postgresql 10 restart
 scala:
   - 2.12.7
 script:
-  - mvn -Pintegration -Ddatabase.jdbcUrl=jdbc:postgresql://localhost:5432/smough_test clean test scoverage:report
+  - mvn -Pintegration clean test scoverage:report
 after_success:
   - mvn coveralls:report
   - ./cc-test-reporter format-coverage -t cobertura target/cobertura.xml
