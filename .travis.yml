@@ -15,7 +15,9 @@ before_script:
   - ./cc-test-reporter before-build
 before_install:
   - sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf
+  - sudo service postgresql status 10
   - sudo service postgresql restart 10
+  - sudo service postgresql status 10
 scala:
   - 2.12.7
 script:
