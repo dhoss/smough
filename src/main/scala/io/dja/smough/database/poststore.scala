@@ -25,6 +25,7 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
             slug,
             body,
             author,
+            category,
             created_on,
             updated_on)
           VALUES(
@@ -33,6 +34,7 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
             ${post.slug},
             ${post.body},
             ${post.author},
+            ${post.category},
             now(),
             now())
       """.update.apply()
@@ -51,6 +53,7 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
             title = ${post.title},
             slug = ${post.slug},
             body = ${post.body},
+            category = ${post.category},
             updated_on = NOW()
           WHERE id = ${post.id}
        """.update.apply()
@@ -65,14 +68,14 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
 
   def findBySlug(slug: String): Option[Post] =  DB.readOnly { implicit s =>
     log.info(s"Loading ${slug} from database")
-    sql"""select id, parent, title, slug, body, author, created_on, updated_on from post where slug=${slug}"""
+    sql"""select id, parent, title, slug, body, author, category, created_on, updated_on from post where slug=${slug}"""
       .map(PostSchema.apply).single().apply
   }
 
   // TODO: this SQL needs to be moved to a common method or something
   def findById(id: Int): Option[Post] = DB.readOnly { implicit s =>
     log.info(s"Loading ${id} from database")
-    sql"""select id, parent, title, slug, body, author, created_on, updated_on from post where id=${id}"""
+    sql"""select id, parent, title, slug, body, author, category, created_on, updated_on from post where id=${id}"""
       .map(PostSchema.apply).single().apply
   }
 
@@ -81,7 +84,7 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
     log.info("Loading all posts from database")
     // TODO: Move this to a construct select method
     sql"""
-         select id, parent, title, slug, body, author, created_on, updated_on from post order by created_on desc
+         select id, parent, title, slug, body, author, category, created_on, updated_on from post order by created_on desc
        """.map(PostSchema.apply).list.apply
   }
 }
@@ -96,6 +99,7 @@ object PostSchema extends SQLSyntaxSupport[Post] {
       rs.stringOpt("slug"),
       rs.string("body"),
       rs.int("author"),
+      rs.int("category"),
       // Wrapping in option is required because we can't set withNano otherwise
       Option(rs.offsetDateTime("created_on").withNano(0)),
       Option(rs.offsetDateTime("updated_on").withNano(0)),

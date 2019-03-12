@@ -34,7 +34,8 @@ class PostService(val postStore: PostStore) extends WithLogger {
       title = post.title,
       slug = Some(post.title.toSlug),
       body = post.body,
-      author = post.author
+      author = post.author,
+      category = post.category
     )
     log.info(s"Checking to see if Post(${postWithSlug.slug}) exists in cache")
     // TODO: find a better way to deal with Optionals

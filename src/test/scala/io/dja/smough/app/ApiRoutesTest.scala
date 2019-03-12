@@ -7,7 +7,7 @@ import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import io.dja.smough.ApiRoutes
 import io.dja.smough.domain.{Post, Result}
 import io.dja.smough.service.PostService
-import io.dja.smough.test.PostFixtures._
+import io.dja.smough.test.Fixtures._
 import org.mockito.ArgumentMatchersSugar
 import org.mockito.Mockito.when
 import org.scalatest.mockito.MockitoSugar
@@ -32,6 +32,7 @@ class ApiRoutesTest extends FunSuite
   "slug": "${expectedPost.slug.get}",
   "body": "${expectedPost.body}",
   "author": ${expectedPost.author},
+  "category": ${expectedPost.category},
   "createdOn": "${expectedPost.createdOn.get}",
   "updatedOn": "${expectedPost.updatedOn.get}"
 }
@@ -67,21 +68,21 @@ class ApiRoutesTest extends FunSuite
   test("POST /posts") {
     Post("/posts", jsonEntity) ~> routes.createPostEndpoint ~> check {
       status must equal(StatusCodes.Created)
-      responseAs[JsValue] must equal (expectedPostCreatedResponseJson)
+      responseAs[JsValue] must equal (expectedPostCreatedResultJson)
     }
   }
 
   test("PUT /posts") {
     Put("/posts", jsonEntity) ~> routes.updatePostEndpoint ~> check {
       status must equal(StatusCodes.OK)
-      responseAs[JsValue] must equal(expectedPostUpdatedResponseJson)
+      responseAs[JsValue] must equal(expectedPostUpdatedResultJson)
     }
   }
 
   test("DELETE /posts/id") {
     Delete("/posts/1") ~> routes.deletePostEndpoint ~> check {
       status must equal(StatusCodes.OK)
-      responseAs[JsValue] must equal(expectedPostDeletedResponseJson)
+      responseAs[JsValue] must equal(expectedPostDeletedResultJson)
     }
   }
 }

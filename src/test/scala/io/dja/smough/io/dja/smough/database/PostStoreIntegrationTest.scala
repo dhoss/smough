@@ -5,9 +5,11 @@ import io.dja.smough.domain.Post
 import io.dja.smough.test.util.IntegrationTest
 import org.mockito.ArgumentMatchersSugar
 import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{BeforeAndAfterEach, FunSuite, MustMatchers}
+import org.scalatest._
 import scalikejdbc._
-import io.dja.smough.test.PostFixtures._
+import io.dja.smough.test.Fixtures._
+import org.flywaydb.core.Flyway
+
 
 class PostStoreIntegrationTest extends FunSuite
   with MockitoSugar
@@ -15,7 +17,9 @@ class PostStoreIntegrationTest extends FunSuite
   // TODO: this is apparently deprecated so look into replacing it with
   //  http://doc.scalatest.org/2.2.6/#org.scalatest.BeforeAndAfterEachTestData
   with BeforeAndAfterEach
+  with BeforeAndAfterAll
   with MustMatchers {
+
 
   ConnectionPool.singleton(
     jdbcUrl,
@@ -25,18 +29,34 @@ class PostStoreIntegrationTest extends FunSuite
 
   val postStore = new PostStore(session, databaseExecutorContext)
 
+  // TODO: move this to a super class
+  override def beforeAll(){
+    val flyway = Flyway
+        .configure
+        .locations("filesystem:src/main/resources/sql/")
+        .dataSource(jdbcUrl, dbUser, dbPassword)
+        .load
+    flyway.clean()
+    flyway.migrate()
+  }
+
   override def beforeEach() {
-    // TODO: maybe make these fixtures
     insertFixtures()
   }
 
-  override def afterEach {
-    // TODO: maybe make these fixtures
+  override def afterEach(){
     deleteFixtures()
   }
 
   test("insert new row", IntegrationTest) {
+    // TODO: dumb and i don't like it
     deleteFixtures()
+    DB.localTx { implicit session =>
+      sql"""
+            INSERT INTO category(id, name) VALUES (1, 'test category')
+      """.update.apply()
+    }
+
     postStore.insert(expectedPost)
     val postFromDb = findPostFromDb().get
     assertPostEquals(expectedPost, postFromDb)
@@ -50,6 +70,7 @@ class PostStoreIntegrationTest extends FunSuite
       postFromDb.slug,
       "updated post body",
       postFromDb.author,
+      postFromDb.category,
       postFromDb.createdOn,
       postFromDb.updatedOn,
       postFromDb.id)
@@ -63,6 +84,7 @@ class PostStoreIntegrationTest extends FunSuite
         postFromDb.slug,
         "updated post body",
         postFromDb.author,
+        postFromDb.category,
         postFromDb.createdOn,
         postFromDb.updatedOn)
       postStore.update(invalidUpdatedPost)
@@ -107,9 +129,7 @@ class PostStoreIntegrationTest extends FunSuite
     actual must have(
       'title (expectedPost.title),
       'slug (expectedPost.slug),
-      'author (expectedPost.author)
-    )
-
+      'author (expectedPost.author))
   }
 
   private def postToMap(p: Post): Map[String, Any] = {
@@ -122,6 +142,4 @@ class PostStoreIntegrationTest extends FunSuite
       "createdOn" -> p.createdOn,
       "updatedOn" -> p.updatedOn)
   }
-
-
 }

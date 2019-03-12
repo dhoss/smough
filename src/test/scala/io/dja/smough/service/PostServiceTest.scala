@@ -2,7 +2,7 @@ package io.dja.smough.service
 
 import io.dja.smough.database.PostStore
 import io.dja.smough.domain.Post
-import io.dja.smough.test.PostFixtures._
+import io.dja.smough.test.Fixtures._
 import org.mockito.ArgumentMatchersSugar
 import org.mockito.Mockito.{times, verify, verifyNoMoreInteractions, when}
 import org.scalatest.mockito.MockitoSugar
@@ -13,17 +13,7 @@ class PostServiceTest extends FunSuite
     with ArgumentMatchersSugar
     with BeforeAndAfter
     with MustMatchers {
-/*
-  val expectedPost = Post(
-    None,
-    "test post",
-    Some("test-post"),
-    "this is a test",
-    1,
-    Some(OffsetDateTime.now),
-    Some(OffsetDateTime.now),
-    Some(1))
-*/
+
   var postService: PostService = _
   val postStore = mock[PostStore]
   before {
@@ -57,6 +47,7 @@ class PostServiceTest extends FunSuite
       body = expectedPost.body,
       parent = expectedPost.parent,
       author = expectedPost.author,
+      category = expectedPost.category,
       createdOn = expectedPost.createdOn,
       updatedOn =  expectedPost.updatedOn
     )

@@ -3,7 +3,7 @@ package io.dja.smough.test
 import java.time.OffsetDateTime
 import java.util.concurrent.Executors
 
-import io.dja.smough.domain.Post
+import io.dja.smough.domain.{Category, Post, Result}
 import scalikejdbc._
 import play.api.libs.json.{JsValue, Json}
 
@@ -11,19 +11,19 @@ import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 
 // TODO: make a trait, implement it
-object PostFixtures {
+object Fixtures {
 
   val expectedPost = Post(
-    None,
-    "test post",
-    Some("test-post"),
-    "this is a test post",
-    1,
-    Some(OffsetDateTime.now.withNano(0)),
-    Some(OffsetDateTime.now.withNano(0)),
-    Some(1)
+    parent = None,
+    title = "test post",
+    slug = Some("test-post"),
+    body = "this is a test post",
+    author  = 1,
+    category = 1,
+    createdOn = Some(OffsetDateTime.now.withNano(0)),
+    updatedOn = Some(OffsetDateTime.now.withNano(0)),
+    id = Some(1)
   )
-
   val expectedPostJson: JsValue = Json.obj(
     "id" -> expectedPost.id,
     "parent" -> expectedPost.parent,
@@ -31,23 +31,31 @@ object PostFixtures {
     "slug" -> expectedPost.slug,
     "body" -> expectedPost.body,
     "author" -> expectedPost.author,
+    "category" -> expectedPost.category,
     "createdOn" -> expectedPost.createdOn,
     "updatedOn" -> expectedPost.updatedOn)
 
-  val expectedPostCreatedResponseJson: JsValue = Json.obj(
+  val expectedPostCreatedResult = Result(s"Created `${expectedPost.title}`")
+  val expectedPostCreatedResultJson: JsValue = Json.obj(
     "message" -> s"Created `${expectedPost.title}`"
   )
 
-  val expectedPostUpdatedResponseJson: JsValue = Json.obj(
+  val expectedPostUpdatedResultJson: JsValue = Json.obj(
     "message" -> s"Updated `${expectedPost.title}`"
   )
 
-  val expectedPostDeletedResponseJson: JsValue = Json.obj(
+  val expectedPostDeletedResultJson: JsValue = Json.obj(
     "message" -> s"Deleted `${expectedPost.title}`"
   )
 
   val expectedPostsJson: JsValue = Json.obj(
     expectedPost.slug.get -> expectedPostJson)
+
+  val expectedCategory = Category(
+    id = Some(1), name = "test category")
+  val expectedCategoryJson = Json.obj(
+    "id" -> expectedCategory.id.get,
+    "name" -> expectedCategory.name)
 
   val connectionPoolSettings = ConnectionPoolSettings(
     initialSize = 1,
@@ -70,14 +78,19 @@ object PostFixtures {
   def insertFixtures(): Unit = {
     DB.localTx { implicit session =>
       sql"""
-         INSERT INTO post(title, slug, body, author, created_on, updated_on)
-         VALUES(
-            ${expectedPost.title},
-            ${expectedPost.slug},
-            ${expectedPost.body},
-            ${expectedPost.author},
-            ${expectedPost.createdOn},
-            ${expectedPost.updatedOn})
+            INSERT INTO category(id, name) VALUES (1, 'test category')
+      """.update.apply()
+
+      sql"""
+            INSERT INTO post(title, slug, body, author, category, created_on, updated_on)
+            VALUES(
+              ${expectedPost.title},
+              ${expectedPost.slug},
+              ${expectedPost.body},
+              ${expectedPost.author},
+              ${expectedPost.category},
+              ${expectedPost.createdOn},
+              ${expectedPost.updatedOn})
        """.update.apply()
     }
   }
@@ -87,6 +100,10 @@ object PostFixtures {
       sql"""
             DELETE FROM post
        """.update.apply()
+
+      sql"""
+            DELETE FROM category
+         """.update.apply()
     }
   }
 }

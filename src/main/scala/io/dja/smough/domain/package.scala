@@ -15,11 +15,10 @@ package object domain {
     slug: Option[String] = None,
     body: String,
     author: Int,
+    category: Int,
     createdOn: Option[OffsetDateTime] = None,
     updatedOn: Option[OffsetDateTime] = None,
     id: Option[Int] = None)
-
-
 
   object Post {
     implicit val postWrites = new Writes[Post] {
@@ -29,11 +28,12 @@ package object domain {
         "slug" -> post.slug,
         "body" -> post.body,
         "author" -> post.author,
+        "category" -> post.category,
         "createdOn" -> post.createdOn,
         "updatedOn" -> post.updatedOn,
         "id" -> post.id
       )
-    }//Json.format[Post]
+    }
 
     // https://stackoverflow.com/questions/43031412/no-json-formatter-for-optionstring
     implicit def optionFormat[T: Format]: Format[Option[T]] = new Format[Option[T]]{
@@ -52,6 +52,7 @@ package object domain {
         (JsPath \ "slug").read[Option[String]] and
         (JsPath \ "body").read[String] and
         (JsPath \ "author").read[Int] and
+        (JsPath \ "category").read[Int] and
         (JsPath \ "createdOn").read[Option[OffsetDateTime]] and
         (JsPath \ "updatedOn").read[Option[OffsetDateTime]] and
         (JsPath \ "id").read[Option[Int]]
@@ -67,5 +68,10 @@ package object domain {
   case class Result(message: String)
   object Result {
     implicit val resultFormat = Json.format[Result]
+  }
+
+  case class Category(id: Option[Int] = None, name: String)
+  object Category {
+    implicit val categoryFormat = Json.format[Category]
   }
 }
