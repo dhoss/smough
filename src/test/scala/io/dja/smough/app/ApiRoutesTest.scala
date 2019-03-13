@@ -23,18 +23,26 @@ class ApiRoutesTest extends FunSuite
 
   val postService = mock[PostService]
   val routes = new ApiRoutes(postService)
-  val jsonEntity = HttpEntity(`application/json`,
+  val createPostEntity = HttpEntity(`application/json`,
     s"""
 {
-  "id": null,
-  "parent": null,
   "title": "${expectedPost.title}",
   "slug": "${expectedPost.slug.get}",
   "body": "${expectedPost.body}",
   "author": ${expectedPost.author},
-  "category": ${expectedPost.category},
-  "createdOn": "${expectedPost.createdOn.get}",
-  "updatedOn": "${expectedPost.updatedOn.get}"
+  "category": ${expectedPost.category}
+}
+      """.stripMargin)
+
+  val updatePostEntity = HttpEntity(`application/json`,
+    s"""
+{
+  "id": ${expectedPost.id.get},
+  "title": "${expectedPost.title}",
+  "slug": "${expectedPost.slug.get}",
+  "body": "${expectedPost.body}",
+  "author": ${expectedPost.author},
+  "category": ${expectedPost.category}
 }
       """.stripMargin)
 
@@ -66,14 +74,14 @@ class ApiRoutesTest extends FunSuite
   }
 
   test("POST /posts") {
-    Post("/posts", jsonEntity) ~> routes.createPostEndpoint ~> check {
+    Post("/posts", createPostEntity) ~> routes.createPostEndpoint ~> check {
       status must equal(StatusCodes.Created)
       responseAs[JsValue] must equal (expectedPostCreatedResultJson)
     }
   }
 
   test("PUT /posts") {
-    Put("/posts", jsonEntity) ~> routes.updatePostEndpoint ~> check {
+    Put("/posts", updatePostEntity) ~> routes.updatePostEndpoint ~> check {
       status must equal(StatusCodes.OK)
       responseAs[JsValue] must equal(expectedPostUpdatedResultJson)
     }

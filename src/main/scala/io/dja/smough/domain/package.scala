@@ -7,8 +7,6 @@ import play.api.libs.functional.syntax._
 
 package object domain {
   // We don't need to pass in an ID unless we're constructing the Post DTO
-  // Therefore, it's Optional and defaults to None at the end of the argument list
-  // so it's less convenient to add manually.
   case class Post(
     parent: Option[Int] = None,
     title: String,
@@ -47,15 +45,15 @@ package object domain {
 
     // https://stackoverflow.com/questions/22191574/outputting-null-for-optiont-in-play-json-serialization-when-value-is-none
     implicit val postReads: Reads[Post] = (
-        (JsPath \ "parent").read[Option[Int]] and
+        (JsPath \ "parent").readNullable[Int] and
         (JsPath \ "title").read[String] and
-        (JsPath \ "slug").read[Option[String]] and
+        (JsPath \ "slug").readNullable[String] and
         (JsPath \ "body").read[String] and
         (JsPath \ "author").read[Int] and
         (JsPath \ "category").read[Int] and
-        (JsPath \ "createdOn").read[Option[OffsetDateTime]] and
-        (JsPath \ "updatedOn").read[Option[OffsetDateTime]] and
-        (JsPath \ "id").read[Option[Int]]
+        (JsPath \ "createdOn").readNullable[OffsetDateTime] and
+        (JsPath \ "updatedOn").readNullable[OffsetDateTime] and
+        (JsPath \ "id").readNullable[Int]
     )(Post.apply _)
   }
 

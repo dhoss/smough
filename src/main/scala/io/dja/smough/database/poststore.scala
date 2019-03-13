@@ -51,7 +51,6 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
           SET
             parent = ${post.parent},
             title = ${post.title},
-            slug = ${post.slug},
             body = ${post.body},
             category = ${post.category},
             updated_on = NOW()
