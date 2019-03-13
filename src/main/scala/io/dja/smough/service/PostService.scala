@@ -1,12 +1,12 @@
 package io.dja.smough.service
 
-import io.dja.smough.WithLogger
+import io.dja.smough.Logger
 import io.dja.smough.database.PostStore
 import io.dja.smough.domain._
 
 import scala.collection.mutable
 
-class PostService(val postStore: PostStore) extends WithLogger {
+class PostService(val postStore: PostStore) extends Logger {
   // TODO: deflate post objects into a hashmap or maybe flatbuffer?
   // TODO: this should be an injectable cache, even if the default is just
   // TODO: no matter what, this should be synchronized

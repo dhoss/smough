@@ -14,6 +14,7 @@ package object domain {
     body: String,
     author: Int,
     category: Int,
+    publishedOn: Option[OffsetDateTime] = None,
     createdOn: Option[OffsetDateTime] = None,
     updatedOn: Option[OffsetDateTime] = None,
     id: Option[Int] = None)
@@ -27,6 +28,7 @@ package object domain {
         "body" -> post.body,
         "author" -> post.author,
         "category" -> post.category,
+        "publishedOn" -> post.publishedOn,
         "createdOn" -> post.createdOn,
         "updatedOn" -> post.updatedOn,
         "id" -> post.id
@@ -51,6 +53,7 @@ package object domain {
         (JsPath \ "body").read[String] and
         (JsPath \ "author").read[Int] and
         (JsPath \ "category").read[Int] and
+        (JsPath \ "publishedOn").readNullable[OffsetDateTime] and
         (JsPath \ "createdOn").readNullable[OffsetDateTime] and
         (JsPath \ "updatedOn").readNullable[OffsetDateTime] and
         (JsPath \ "id").readNullable[Int]

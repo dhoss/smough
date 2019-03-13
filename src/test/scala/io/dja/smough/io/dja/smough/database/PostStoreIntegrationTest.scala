@@ -75,6 +75,7 @@ class PostStoreIntegrationTest extends FunSuite
       "updated post body",
       postFromDb.author,
       postFromDb.category,
+      postFromDb.publishedOn,
       postFromDb.createdOn,
       postFromDb.updatedOn,
       postFromDb.id)
@@ -89,6 +90,7 @@ class PostStoreIntegrationTest extends FunSuite
         "updated post body",
         postFromDb.author,
         postFromDb.category,
+        postFromDb.publishedOn,
         postFromDb.createdOn,
         postFromDb.updatedOn)
       postStore.update(invalidUpdatedPost)
@@ -116,6 +118,13 @@ class PostStoreIntegrationTest extends FunSuite
     // TODO: find a better way to deal with options
     postStore.delete(findPostFromDb().flatMap(_.id).get)
     None must equal (findPostFromDb())
+  }
+
+  test("Find by year from db", IntegrationTest) {
+    val actual = postStore.findByYear(2019)
+    for (post <- actual) {
+      post.publishedOn.get.getYear must equal(2019)
+    }
   }
 
   // TODO: genericize and move these up to a util class
@@ -148,6 +157,7 @@ class PostStoreIntegrationTest extends FunSuite
       "slug" -> p.slug,
       "body" -> p.body,
       "author" -> p.author,
+      "publishedOn" -> p.publishedOn,
       "createdOn" -> p.createdOn,
       "updatedOn" -> p.updatedOn)
   }

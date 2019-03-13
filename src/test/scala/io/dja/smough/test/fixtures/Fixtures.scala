@@ -20,6 +20,7 @@ object Fixtures {
     body = "this is a test post",
     author  = 1,
     category = 1,
+    publishedOn = Some(OffsetDateTime.now.withNano(0)),
     createdOn = Some(OffsetDateTime.now.withNano(0)),
     updatedOn = Some(OffsetDateTime.now.withNano(0)),
     id = Some(1)
@@ -32,6 +33,7 @@ object Fixtures {
     "body" -> expectedPost.body,
     "author" -> expectedPost.author,
     "category" -> expectedPost.category,
+    "publishedOn" -> expectedPost.publishedOn,
     "createdOn" -> expectedPost.createdOn,
     "updatedOn" -> expectedPost.updatedOn)
 
@@ -78,13 +80,14 @@ object Fixtures {
       """.update.apply()
 
       sql"""
-            INSERT INTO post(title, slug, body, author, category, created_on, updated_on)
+            INSERT INTO post(title, slug, body, author, category, published_on, created_on, updated_on)
             VALUES(
               ${expectedPost.title},
               ${expectedPost.slug},
               ${expectedPost.body},
               ${expectedPost.author},
               ${expectedPost.category},
+              ${expectedPost.publishedOn},
               ${expectedPost.createdOn},
               ${expectedPost.updatedOn})
        """.update.apply()

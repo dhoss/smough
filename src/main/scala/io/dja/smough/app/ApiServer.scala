@@ -7,13 +7,13 @@ import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import io.dja.smough.database.PostStore
 import io.dja.smough.service.PostService
-import io.dja.smough.{ApiRoutes, WithLogger}
+import io.dja.smough.{ApiRoutes, Logger}
 import scalikejdbc.{AutoSession, ConnectionPool, ConnectionPoolSettings, DBSession}
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
-object ApiServer extends WithLogger {
+object ApiServer extends Logger {
 
   implicit private val system: ActorSystem = ActorSystem("smough-rest-api")
   implicit private val executor: ExecutionContext = system.dispatcher
