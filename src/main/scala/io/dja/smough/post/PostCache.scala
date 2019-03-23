@@ -1,18 +1,19 @@
-package io.dja.smough.service
+package io.dja.smough.post
 
 import io.dja.smough.Logger
-import io.dja.smough.database.PostStore
 import io.dja.smough.domain._
 
 import scala.collection.mutable
 
-class PostService(val postStore: PostStore) extends Logger {
+// TODO: refactor this into a generic trait and make this an implementation of said trait
+class PostCache(val postStore: PostStore) extends Logger {
   // TODO: deflate post objects into a hashmap or maybe flatbuffer?
   // TODO: this should be an injectable cache, even if the default is just
   // TODO: no matter what, this should be synchronized
   // a simple class that keeps things in an in memory HashMap
   private val postCache = mutable.HashMap[String, Post]()
 
+  // TODO there's a solid chance I'd rather just load pageSize*2 on demand here
   def loadPosts(): Unit = {
     log.info("Determining whether or not to load posts into memory")
     if (cacheIsEmpty) {
@@ -87,6 +88,15 @@ class PostService(val postStore: PostStore) extends Logger {
       postCache.synchronized(
         postCache.getOrElseUpdate(slug, postStore.findBySlug(slug).get)))
   }
+
+  // TODO: this makes me think we need an additional layer for caching
+  // Mixing up the caching and service calls seems like it's going to be a lot more painful
+  // Calling synchronized everywhere isn't good either, so maybe there needs to be a central
+  // entrypoint for the cache
+  // ...or maybe this is really the caching layer and not a service
+  def findByYear(year: Int): List[Post] = postStore.findByYear(year)
+  def findByMonth(year: Int, month: Int): List[Post] = postStore.findByMonth(year, month)
+  def findByDay(year: Int, month: Int, day: Int): List[Post] = postStore.findByDay(year, month, day)
 
   private def cacheIsEmpty(): Boolean =
     postCache.synchronized(postCache.isEmpty)

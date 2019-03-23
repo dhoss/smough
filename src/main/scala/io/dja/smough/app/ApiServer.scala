@@ -5,9 +5,8 @@ import java.util.concurrent.Executors
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
-import io.dja.smough.database.PostStore
-import io.dja.smough.service.PostService
-import io.dja.smough.{ApiRoutes, Logger}
+import io.dja.smough.post.{PostCache, PostStore}
+import io.dja.smough.Logger
 import scalikejdbc.{AutoSession, ConnectionPool, ConnectionPoolSettings, DBSession}
 
 import scala.concurrent.ExecutionContext
@@ -36,7 +35,7 @@ object ApiServer extends Logger {
       Executors.newFixedThreadPool(Configuration.dbThreadPoolSize))
 
   private val postStore = new PostStore(session, databaseExecutorContext)
-  private val postService = new PostService(postStore)
+  private val postService = new PostCache(postStore)
   private val routes = new ApiRoutes(postService)
 
   private val bindingFuture =

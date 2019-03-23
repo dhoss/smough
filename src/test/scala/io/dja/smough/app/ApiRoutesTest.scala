@@ -4,9 +4,8 @@ import akka.http.scaladsl.model.MediaTypes.`application/json`
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
-import io.dja.smough.ApiRoutes
 import io.dja.smough.domain.{Post, Result}
-import io.dja.smough.service.PostService
+import io.dja.smough.post.PostCache
 import io.dja.smough.test.Fixtures._
 import org.mockito.ArgumentMatchersSugar
 import org.mockito.Mockito.when
@@ -21,7 +20,7 @@ class ApiRoutesTest extends FunSuite
   with MustMatchers
   with ScalatestRouteTest {
 
-  val postService = mock[PostService]
+  val postService = mock[PostCache]
   val routes = new ApiRoutes(postService)
   val createPostEntity = HttpEntity(`application/json`,
     s"""

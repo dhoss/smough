@@ -1,15 +1,14 @@
-package io.dja.smough.io.dja.smough.database
+package io.dja.smough.post
 
 import io.dja.smough.app.Configuration
-import io.dja.smough.database.{PostSchema, PostStore}
 import io.dja.smough.domain.Post
-import io.dja.smough.test.util.IntegrationTest
-import org.mockito.ArgumentMatchersSugar
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest._
-import scalikejdbc._
 import io.dja.smough.test.Fixtures._
+import io.dja.smough.test.util.IntegrationTest
 import org.flywaydb.core.Flyway
+import org.mockito.ArgumentMatchersSugar
+import org.scalatest._
+import org.scalatest.mockito.MockitoSugar
+import scalikejdbc._
 
 
 class PostStoreIntegrationTest extends FunSuite

@@ -1,10 +1,12 @@
-package io.dja.smough.database
+package io.dja.smough.post
 
 import io.dja.smough.Logger
 import io.dja.smough.domain._
-import scala.concurrent.ExecutionContext
 import scalikejdbc._
 
+import scala.concurrent.ExecutionContext
+
+// TODO: refactor this into a generic trait and make this an implementation of said trait
 class PostStore(session: DBSession, executionContext: ExecutionContext)
   extends Logger {
 
@@ -67,6 +69,7 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
        """.update.apply()
   }
 
+  // TODO: maybe curry findBy*?
   def findBySlug(slug: String): Option[Post] =  DB.readOnly { implicit s =>
     log.info(s"Loading ${slug} from database")
     sql"""select id, parent, title, slug, body, author, category, created_on, updated_on from post where slug=${slug}"""
