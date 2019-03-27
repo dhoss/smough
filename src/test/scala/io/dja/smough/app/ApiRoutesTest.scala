@@ -46,8 +46,8 @@ class ApiRoutesTest extends FunSuite
       """.stripMargin)
 
   before {
-    when(postService.retrieveAllFromCache())
-        .thenReturn(expectedPostCache)
+    when(postService.retrieveAll())
+        .thenReturn(List(expectedPost))
     when(postService.findBySlug(any[String]))
         .thenReturn(Option(expectedPost))
     when(postService.insert(any[Post]))
@@ -56,6 +56,12 @@ class ApiRoutesTest extends FunSuite
         .thenReturn(Result("Updated `test post`"))
     when(postService.delete(any[Int]))
         .thenReturn(Result("Deleted `test post`"))
+    when(postService.findByDay(any[Int], any[Int], any[Int]))
+        .thenReturn(List(expectedPost))
+    when(postService.findByMonth(any[Int], any[Int]))
+        .thenReturn(List(expectedPost))
+    when(postService.findByYear(any[Int]))
+        .thenReturn(List(expectedPost))
   }
 
   test("GET /posts") {
@@ -69,6 +75,27 @@ class ApiRoutesTest extends FunSuite
     Get("/2019/03/27/test-post") ~> routes.findPostEndpoint ~> check {
       status must equal(StatusCodes.OK)
       responseAs[JsValue] must equal(expectedPostJson)
+    }
+  }
+
+  test("GET /yyyy/mm/dd") {
+    Get("/2019/03/27") ~> routes.postsByDay ~> check {
+      status must equal(StatusCodes.OK)
+      responseAs[JsValue] must equal(expectedPostsJson)
+    }
+  }
+
+  test("GET /yyyy/mm") {
+    Get("/2019/03") ~> routes.postsByMonth ~> check {
+      status must equal(StatusCodes.OK)
+      responseAs[JsValue] must equal(expectedPostsJson)
+    }
+  }
+
+  test("GET /yyyy") {
+    Get("/2019") ~> routes.postsByYear ~> check {
+      status must equal(StatusCodes.OK)
+      responseAs[JsValue] must equal(expectedPostsJson)
     }
   }
 

@@ -14,7 +14,7 @@ class ApiRoutes(val postCache: PostCache) {
   // see: https://doc.akka.io/docs/akka-http/current/introduction.html
   val listPostsEndpoint = path("posts") {
     get {
-      complete(postCache.retrieveAllFromCache())
+      complete(postCache.retrieveAll())
     }
   }
 
@@ -23,6 +23,24 @@ class ApiRoutes(val postCache: PostCache) {
       get {
         complete(StatusCodes.OK, postCache.findBySlug(slug))
       }
+  }
+
+  val postsByYear = path(IntNumber) { year =>
+    get {
+      complete(StatusCodes.OK, postCache.findByYear(year))
+    }
+  }
+
+  val postsByMonth = path(IntNumber / IntNumber) { (year, month) =>
+    get {
+      complete(StatusCodes.OK, postCache.findByMonth(year, month))
+    }
+  }
+
+  val postsByDay = path(IntNumber / IntNumber / IntNumber) { (year, month, day) =>
+    get {
+      complete(StatusCodes.OK, postCache.findByDay(year, month, day))
+    }
   }
 
   // TODO: handle exceptions etc
@@ -53,7 +71,11 @@ class ApiRoutes(val postCache: PostCache) {
     findPostEndpoint ~
     createPostEndpoint ~
     updatePostEndpoint ~
-    deletePostEndpoint
+    deletePostEndpoint ~
+    postsByYear ~
+    postsByMonth ~
+    postsByDay
+
 
   def apply() = routes
 

@@ -27,13 +27,11 @@ class PostCacheTest extends FunSuite
 
   test("Retrieve all from cache") {
     // should start out empty
-    Map.empty[String, Post] must equal(postCache.retrieveAllFromCache())
+    List.empty[Post] must equal(postCache.retrieveAll())
     postCache.loadPosts()
     verify(postStore, times(1)).retrieveAll()
     verifyNoMoreInteractions(postStore)
-    Map(
-      expectedPost.slug.get -> expectedPost) must equal(
-      postCache.retrieveAllFromCache())
+    List(expectedPost) must equal(postCache.retrieveAll())
     // make sure to breakout if the cache isn't empty
     postCache.loadPosts()
   }
@@ -53,7 +51,7 @@ class PostCacheTest extends FunSuite
     postCache.insert(postWithoutSlug)
     verify(postStore, times(1)).insert(any[Post])
     verifyNoMoreInteractions(postStore)
-    1 must equal(postCache.retrieveAllFromCache().size)
+    1 must equal(postCache.retrieveAll().size)
     postCache.insert(expectedPost)
   }
 
@@ -61,7 +59,7 @@ class PostCacheTest extends FunSuite
     postCache.update(expectedPost)
     verify(postStore, times(1)).update(any[Post])
     verifyNoMoreInteractions(postStore)
-    1 must equal(postCache.retrieveAllFromCache().size)
+    1 must equal(postCache.retrieveAll().size)
     postCache.insert(expectedPost)
   }
 
@@ -74,6 +72,6 @@ class PostCacheTest extends FunSuite
   test("Delete a post") {
     postCache.delete(expectedPost.id.get)
     verify(postStore, times(1)).delete(any[Int])
-    0 must equal(postCache.retrieveAllFromCache().size)
+    0 must equal(postCache.retrieveAll().size)
   }
 }

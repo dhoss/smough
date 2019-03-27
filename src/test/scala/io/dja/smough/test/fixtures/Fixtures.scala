@@ -50,8 +50,10 @@ object Fixtures {
     "message" -> s"Deleted `${expectedPost.title}`"
   )
 
-  val expectedPostsJson: JsValue = Json.obj(
+  val expectedPostFromCacheJson: JsValue = Json.obj(
     expectedPost.slug.get -> expectedPostJson)
+
+  val expectedPostsJson: JsValue = Json.arr(expectedPost)
 
   val expectedCategory = Category(
     id = Some(1), name = "test category")

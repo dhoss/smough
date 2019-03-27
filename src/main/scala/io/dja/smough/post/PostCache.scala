@@ -20,7 +20,7 @@ class PostCache(val postStore: PostStore) extends Logger {
       log.info("Post cache is empty, loading posts")
       // TODO: add pagination
       for (post <- postStore.retrieveAll()) {
-        addToCache(post)
+        add(post)
       }
       log.info("Loading posts complete.")
     }
@@ -45,7 +45,7 @@ class PostCache(val postStore: PostStore) extends Logger {
       postStore.insert(postWithSlug)
 
       log.info(s"Updating cache with Post(${postWithSlug.slug}")
-      addToCache(postWithSlug)
+      add(postWithSlug)
     }
     Result(s"Created `${postWithSlug.title}`")
   }
@@ -58,7 +58,7 @@ class PostCache(val postStore: PostStore) extends Logger {
         if (p.id.isDefined) {
           val id = p.id.get
           log.info(s"Deleting Post(${id})")
-          removeFromCache(p)
+          remove(p)
           postStore.delete(id)
         }
       case None => throw new IllegalArgumentException(s"No such post ${id}")
@@ -71,14 +71,14 @@ class PostCache(val postStore: PostStore) extends Logger {
     postStore.update(post)
 
     log.info(s"Updating Post(${post.slug}) in cache")
-    addToCache(post)
+    add(post)
     Result(s"Updated `${post.title}`")
   }
 
   // TODO: add pagination
-  def retrieveAllFromCache(): mutable.HashMap[String, Post] = {
+  def retrieveAll(): List[Post] = {
     log.info("Retrieving posts from cache")
-    postCache.synchronized(postCache)
+    postCache.synchronized(postCache.values.toList)
   }
 
   // TODO: calling synchronized everywhere is probably not good
@@ -89,11 +89,7 @@ class PostCache(val postStore: PostStore) extends Logger {
         postCache.getOrElseUpdate(slug, postStore.findBySlug(slug).get)))
   }
 
-  // TODO: this makes me think we need an additional layer for caching
-  // Mixing up the caching and service calls seems like it's going to be a lot more painful
-  // Calling synchronized everywhere isn't good either, so maybe there needs to be a central
-  // entrypoint for the cache
-  // ...or maybe this is really the caching layer and not a service
+  // TODO: Pagination
   def findByYear(year: Int): List[Post] = postStore.findByYear(year)
   def findByMonth(year: Int, month: Int): List[Post] = postStore.findByMonth(year, month)
   def findByDay(year: Int, month: Int, day: Int): List[Post] = postStore.findByDay(year, month, day)
@@ -105,11 +101,11 @@ class PostCache(val postStore: PostStore) extends Logger {
     postCache.synchronized(
       postCache.contains(slug))
 
-  private def addToCache(post: Post) =
+  private def add(post: Post) =
     postCache.synchronized(
       postCache += (post.slug.get -> post))
 
-  private def removeFromCache(post: Post) =
+  private def remove(post: Post) =
     postCache.synchronized(
       postCache -= post.slug.get)
 }
