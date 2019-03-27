@@ -18,10 +18,11 @@ class ApiRoutes(val postCache: PostCache) {
     }
   }
 
-  val findPostEndpoint = path("posts"/Segment) { slug =>
-    get {
-      complete(StatusCodes.OK, postCache.findBySlug(slug))
-    }
+  val findPostEndpoint = path(IntNumber / IntNumber / IntNumber / Segment) {
+    (year, month, day, slug) =>
+      get {
+        complete(StatusCodes.OK, postCache.findBySlug(slug))
+      }
   }
 
   // TODO: handle exceptions etc

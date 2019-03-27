@@ -65,8 +65,8 @@ class ApiRoutesTest extends FunSuite
     }
   }
 
-  test("GET /posts/slug") {
-    Get("/posts/test-post") ~> routes.findPostEndpoint ~> check {
+  test("GET /yyyy/mm/dd/slug") {
+    Get("/2019/03/27/test-post") ~> routes.findPostEndpoint ~> check {
       status must equal(StatusCodes.OK)
       responseAs[JsValue] must equal(expectedPostJson)
     }

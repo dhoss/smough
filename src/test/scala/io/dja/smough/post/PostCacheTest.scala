@@ -13,10 +13,10 @@ class PostCacheTest extends FunSuite
     with BeforeAndAfter
     with MustMatchers {
 
-  var postService: PostCache = _
+  var postCache: PostCache = _
   val postStore = mock[PostStore]
   before {
-    postService = new PostCache(postStore)
+    postCache = new PostCache(postStore)
     when(postStore.findBySlug(any[String])).thenReturn(Option(expectedPost))
     when(postStore.findById(any[Int])).thenReturn(Option(expectedPost))
     when(postStore.retrieveAll()).thenReturn(List(expectedPost))
@@ -27,15 +27,15 @@ class PostCacheTest extends FunSuite
 
   test("Retrieve all from cache") {
     // should start out empty
-    Map.empty[String, Post] must equal(postService.retrieveAllFromCache())
-    postService.loadPosts()
+    Map.empty[String, Post] must equal(postCache.retrieveAllFromCache())
+    postCache.loadPosts()
     verify(postStore, times(1)).retrieveAll()
     verifyNoMoreInteractions(postStore)
     Map(
       expectedPost.slug.get -> expectedPost) must equal(
-      postService.retrieveAllFromCache())
+      postCache.retrieveAllFromCache())
     // make sure to breakout if the cache isn't empty
-    postService.loadPosts()
+    postCache.loadPosts()
   }
 
   // TODO: do we even need to check to make sure the cache is empty or anything besides the
@@ -50,30 +50,30 @@ class PostCacheTest extends FunSuite
       createdOn = expectedPost.createdOn,
       updatedOn =  expectedPost.updatedOn
     )
-    postService.insert(postWithoutSlug)
+    postCache.insert(postWithoutSlug)
     verify(postStore, times(1)).insert(any[Post])
     verifyNoMoreInteractions(postStore)
-    1 must equal(postService.retrieveAllFromCache().size)
-    postService.insert(expectedPost)
+    1 must equal(postCache.retrieveAllFromCache().size)
+    postCache.insert(expectedPost)
   }
 
   test("Update a post") {
-    postService.update(expectedPost)
+    postCache.update(expectedPost)
     verify(postStore, times(1)).update(any[Post])
     verifyNoMoreInteractions(postStore)
-    1 must equal(postService.retrieveAllFromCache().size)
-    postService.insert(expectedPost)
+    1 must equal(postCache.retrieveAllFromCache().size)
+    postCache.insert(expectedPost)
   }
 
   test("Find by slug") {
     Option(expectedPost) must equal(
-      postService.findBySlug("test-post"))
+      postCache.findBySlug("test-post"))
     verify(postStore).findBySlug(any[String])
   }
 
   test("Delete a post") {
-    postService.delete(expectedPost.id.get)
+    postCache.delete(expectedPost.id.get)
     verify(postStore, times(1)).delete(any[Int])
-    0 must equal(postService.retrieveAllFromCache().size)
+    0 must equal(postCache.retrieveAllFromCache().size)
   }
 }
