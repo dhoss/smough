@@ -1,25 +1,26 @@
-package io.dja.smough.service
+package io.dja.smough.post
 
-import io.dja.smough.WithLogger
-import io.dja.smough.database.PostStore
+import io.dja.smough.Logger
 import io.dja.smough.domain._
 
 import scala.collection.mutable
 
-class PostService(val postStore: PostStore) extends WithLogger {
+// TODO: refactor this into a generic trait and make this an implementation of said trait
+class PostCache(val postStore: PostStore) extends Logger {
   // TODO: deflate post objects into a hashmap or maybe flatbuffer?
   // TODO: this should be an injectable cache, even if the default is just
   // TODO: no matter what, this should be synchronized
   // a simple class that keeps things in an in memory HashMap
   private val postCache = mutable.HashMap[String, Post]()
 
+  // TODO there's a solid chance I'd rather just load pageSize*2 on demand here
   def loadPosts(): Unit = {
     log.info("Determining whether or not to load posts into memory")
     if (cacheIsEmpty) {
       log.info("Post cache is empty, loading posts")
       // TODO: add pagination
       for (post <- postStore.retrieveAll()) {
-        addToCache(post)
+        add(post)
       }
       log.info("Loading posts complete.")
     }
@@ -44,7 +45,7 @@ class PostService(val postStore: PostStore) extends WithLogger {
       postStore.insert(postWithSlug)
 
       log.info(s"Updating cache with Post(${postWithSlug.slug}")
-      addToCache(postWithSlug)
+      add(postWithSlug)
     }
     Result(s"Created `${postWithSlug.title}`")
   }
@@ -57,7 +58,7 @@ class PostService(val postStore: PostStore) extends WithLogger {
         if (p.id.isDefined) {
           val id = p.id.get
           log.info(s"Deleting Post(${id})")
-          removeFromCache(p)
+          remove(p)
           postStore.delete(id)
         }
       case None => throw new IllegalArgumentException(s"No such post ${id}")
@@ -70,14 +71,14 @@ class PostService(val postStore: PostStore) extends WithLogger {
     postStore.update(post)
 
     log.info(s"Updating Post(${post.slug}) in cache")
-    addToCache(post)
+    add(post)
     Result(s"Updated `${post.title}`")
   }
 
   // TODO: add pagination
-  def retrieveAllFromCache(): mutable.HashMap[String, Post] = {
+  def retrieveAll(): List[Post] = {
     log.info("Retrieving posts from cache")
-    postCache.synchronized(postCache)
+    postCache.synchronized(postCache.values.toList)
   }
 
   // TODO: calling synchronized everywhere is probably not good
@@ -88,6 +89,11 @@ class PostService(val postStore: PostStore) extends WithLogger {
         postCache.getOrElseUpdate(slug, postStore.findBySlug(slug).get)))
   }
 
+  // TODO: Pagination
+  def findByYear(year: Int): List[Post] = postStore.findByYear(year)
+  def findByMonth(year: Int, month: Int): List[Post] = postStore.findByMonth(year, month)
+  def findByDay(year: Int, month: Int, day: Int): List[Post] = postStore.findByDay(year, month, day)
+
   private def cacheIsEmpty(): Boolean =
     postCache.synchronized(postCache.isEmpty)
 
@@ -95,11 +101,11 @@ class PostService(val postStore: PostStore) extends WithLogger {
     postCache.synchronized(
       postCache.contains(slug))
 
-  private def addToCache(post: Post) =
+  private def add(post: Post) =
     postCache.synchronized(
       postCache += (post.slug.get -> post))
 
-  private def removeFromCache(post: Post) =
+  private def remove(post: Post) =
     postCache.synchronized(
       postCache -= post.slug.get)
 }

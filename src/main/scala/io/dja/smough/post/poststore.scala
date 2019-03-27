@@ -1,12 +1,14 @@
-package io.dja.smough.database
+package io.dja.smough.post
 
-import io.dja.smough.WithLogger
+import io.dja.smough.Logger
 import io.dja.smough.domain._
-import scala.concurrent.ExecutionContext
 import scalikejdbc._
 
+import scala.concurrent.ExecutionContext
+
+// TODO: refactor this into a generic trait and make this an implementation of said trait
 class PostStore(session: DBSession, executionContext: ExecutionContext)
-  extends WithLogger {
+  extends Logger {
 
   GlobalSettings.loggingSQLAndTime = new LoggingSQLAndTimeSettings(
     enabled = true,
@@ -26,6 +28,7 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
             body,
             author,
             category,
+            published_on,
             created_on,
             updated_on)
           VALUES(
@@ -35,6 +38,7 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
             ${post.body},
             ${post.author},
             ${post.category},
+            ${post.publishedOn},
             now(),
             now())
       """.update.apply()
@@ -51,7 +55,6 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
           SET
             parent = ${post.parent},
             title = ${post.title},
-            slug = ${post.slug},
             body = ${post.body},
             category = ${post.category},
             updated_on = NOW()
@@ -66,6 +69,7 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
        """.update.apply()
   }
 
+  // TODO: maybe curry findBy*?
   def findBySlug(slug: String): Option[Post] =  DB.readOnly { implicit s =>
     log.info(s"Loading ${slug} from database")
     sql"""select id, parent, title, slug, body, author, category, created_on, updated_on from post where slug=${slug}"""
@@ -77,6 +81,40 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
     log.info(s"Loading ${id} from database")
     sql"""select id, parent, title, slug, body, author, category, created_on, updated_on from post where id=${id}"""
       .map(PostSchema.apply).single().apply
+  }
+
+  def findByYear(year: Int): List[Post] = DB.readOnly { implicit s =>
+    log.info(s"Finding posts for ${year} from database")
+    sql"""
+          select id, parent, title, slug, body, author, category, created_on, updated_on from post where extract(year from published_on)=${year}
+      """.map(PostSchema.apply).list.apply
+  }
+
+  // TODO: be sure to add tests for dates out of range
+  def findByMonth(year: Int, month: Int): List[Post] = DB.readOnly { implicit s =>
+    log.info(s"Finding posts for ${year}/${month} from database")
+    sql"""
+          select
+            id, parent, title, slug, body, author, category, created_on, updated_on
+          from
+            post
+         where extract(year from published_on)=${year}
+         and extract(month from published_on)=${month}
+      """.map(PostSchema.apply).list.apply
+  }
+
+  // TODO: be sure to add tests for dates out of range
+  def findByDay(year: Int, month: Int, day: Int): List[Post] = DB.readOnly { implicit s =>
+    log.info(s"Finding posts for ${year}/${month} from database")
+    sql"""
+          select
+            id, parent, title, slug, body, author, category, created_on, updated_on
+          from
+            post
+         where extract(year from published_on)=${year}
+         and extract(month from published_on)=${month}
+         and extract(day from published_on)=${day}
+      """.map(PostSchema.apply).list.apply
   }
 
   // TODO: add pagination
@@ -101,6 +139,7 @@ object PostSchema extends SQLSyntaxSupport[Post] {
       rs.int("author"),
       rs.int("category"),
       // Wrapping in option is required because we can't set withNano otherwise
+      Option(rs.offsetDateTime("updated_on").withNano(0)),
       Option(rs.offsetDateTime("created_on").withNano(0)),
       Option(rs.offsetDateTime("updated_on").withNano(0)),
       rs.intOpt("id"))

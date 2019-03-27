@@ -4,9 +4,8 @@ import akka.http.scaladsl.model.MediaTypes.`application/json`
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
-import io.dja.smough.ApiRoutes
 import io.dja.smough.domain.{Post, Result}
-import io.dja.smough.service.PostService
+import io.dja.smough.post.PostCache
 import io.dja.smough.test.Fixtures._
 import org.mockito.ArgumentMatchersSugar
 import org.mockito.Mockito.when
@@ -21,26 +20,34 @@ class ApiRoutesTest extends FunSuite
   with MustMatchers
   with ScalatestRouteTest {
 
-  val postService = mock[PostService]
+  val postService = mock[PostCache]
   val routes = new ApiRoutes(postService)
-  val jsonEntity = HttpEntity(`application/json`,
+  val createPostEntity = HttpEntity(`application/json`,
     s"""
 {
-  "id": null,
-  "parent": null,
   "title": "${expectedPost.title}",
   "slug": "${expectedPost.slug.get}",
   "body": "${expectedPost.body}",
   "author": ${expectedPost.author},
-  "category": ${expectedPost.category},
-  "createdOn": "${expectedPost.createdOn.get}",
-  "updatedOn": "${expectedPost.updatedOn.get}"
+  "category": ${expectedPost.category}
+}
+      """.stripMargin)
+
+  val updatePostEntity = HttpEntity(`application/json`,
+    s"""
+{
+  "id": ${expectedPost.id.get},
+  "title": "${expectedPost.title}",
+  "slug": "${expectedPost.slug.get}",
+  "body": "${expectedPost.body}",
+  "author": ${expectedPost.author},
+  "category": ${expectedPost.category}
 }
       """.stripMargin)
 
   before {
-    when(postService.retrieveAllFromCache())
-        .thenReturn(expectedPostCache)
+    when(postService.retrieveAll())
+        .thenReturn(List(expectedPost))
     when(postService.findBySlug(any[String]))
         .thenReturn(Option(expectedPost))
     when(postService.insert(any[Post]))
@@ -49,6 +56,12 @@ class ApiRoutesTest extends FunSuite
         .thenReturn(Result("Updated `test post`"))
     when(postService.delete(any[Int]))
         .thenReturn(Result("Deleted `test post`"))
+    when(postService.findByDay(any[Int], any[Int], any[Int]))
+        .thenReturn(List(expectedPost))
+    when(postService.findByMonth(any[Int], any[Int]))
+        .thenReturn(List(expectedPost))
+    when(postService.findByYear(any[Int]))
+        .thenReturn(List(expectedPost))
   }
 
   test("GET /posts") {
@@ -58,22 +71,43 @@ class ApiRoutesTest extends FunSuite
     }
   }
 
-  test("GET /posts/slug") {
-    Get("/posts/test-post") ~> routes.findPostEndpoint ~> check {
+  test("GET /yyyy/mm/dd/slug") {
+    Get("/2019/03/27/test-post") ~> routes.findPostEndpoint ~> check {
       status must equal(StatusCodes.OK)
       responseAs[JsValue] must equal(expectedPostJson)
     }
   }
 
+  test("GET /yyyy/mm/dd") {
+    Get("/2019/03/27") ~> routes.postsByDay ~> check {
+      status must equal(StatusCodes.OK)
+      responseAs[JsValue] must equal(expectedPostsJson)
+    }
+  }
+
+  test("GET /yyyy/mm") {
+    Get("/2019/03") ~> routes.postsByMonth ~> check {
+      status must equal(StatusCodes.OK)
+      responseAs[JsValue] must equal(expectedPostsJson)
+    }
+  }
+
+  test("GET /yyyy") {
+    Get("/2019") ~> routes.postsByYear ~> check {
+      status must equal(StatusCodes.OK)
+      responseAs[JsValue] must equal(expectedPostsJson)
+    }
+  }
+
   test("POST /posts") {
-    Post("/posts", jsonEntity) ~> routes.createPostEndpoint ~> check {
+    Post("/posts", createPostEntity) ~> routes.createPostEndpoint ~> check {
       status must equal(StatusCodes.Created)
       responseAs[JsValue] must equal (expectedPostCreatedResultJson)
     }
   }
 
   test("PUT /posts") {
-    Put("/posts", jsonEntity) ~> routes.updatePostEndpoint ~> check {
+    Put("/posts", updatePostEntity) ~> routes.updatePostEndpoint ~> check {
       status must equal(StatusCodes.OK)
       responseAs[JsValue] must equal(expectedPostUpdatedResultJson)
     }

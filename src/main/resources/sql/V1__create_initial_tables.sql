@@ -20,7 +20,7 @@ CREATE TABLE post(
 
 CREATE UNIQUE INDEX post_slug ON post(slug);
 
-CREATE INDEX post_published_on_day ON post(date(published_on));
+CREATE INDEX post_published_in_year ON post((extract(year from published_on)));
 
 CREATE INDEX post_created_on ON post(created_on DESC);
 CREATE INDEX post_updated_on ON post(updated_on DESC);

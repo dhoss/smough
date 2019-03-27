@@ -5,44 +5,44 @@ import java.util.concurrent.Executors
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
-import io.dja.smough.database.PostStore
-import io.dja.smough.service.PostService
-import io.dja.smough.{ApiRoutes, WithLogger}
+import io.dja.smough.post.{PostCache, PostStore}
+import io.dja.smough.Logger
 import scalikejdbc.{AutoSession, ConnectionPool, ConnectionPoolSettings, DBSession}
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
-object ApiServer extends WithLogger {
+object ApiServer extends Logger {
 
   implicit private val system: ActorSystem = ActorSystem("smough-rest-api")
   implicit private val executor: ExecutionContext = system.dispatcher
   implicit private val materializer: ActorMaterializer = ActorMaterializer()
 
+  // TODO: config?
   val connectionPoolSettings = ConnectionPoolSettings(
     initialSize = 1,
     maxSize = 10)
 
-  // TODO: pull these from config
-  var jdbcString = "jdbc:postgresql://localhost:5432/smough"
-  var dbUser = "smough"
-  var dbPassword = "smough"
   ConnectionPool.singleton(
-    jdbcString,
-    dbUser,
-    dbPassword,
+    Configuration.jdbcUrl,
+    Configuration.dbUser,
+    Configuration.dbPassword,
     connectionPoolSettings)
 
   lazy val session: DBSession = AutoSession
   lazy val databaseExecutorContext: ExecutionContext =
-    ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(10))
+    ExecutionContext.fromExecutorService(
+      Executors.newFixedThreadPool(Configuration.dbThreadPoolSize))
 
   private val postStore = new PostStore(session, databaseExecutorContext)
-  private val postService = new PostService(postStore)
+  private val postService = new PostCache(postStore)
   private val routes = new ApiRoutes(postService)
 
   private val bindingFuture =
-    Http().bindAndHandle(routes(), "0.0.0.0", 8080) // TODO: make these config
+    Http().bindAndHandle(
+      routes(),
+      Configuration.apiServerBindAddress,
+      Configuration.apiServerPort)
   def main(args: Array[String]): Unit = {
     bindingFuture.onComplete {
       case Success(serverBinding) => {

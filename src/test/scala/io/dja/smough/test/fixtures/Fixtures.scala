@@ -20,6 +20,7 @@ object Fixtures {
     body = "this is a test post",
     author  = 1,
     category = 1,
+    publishedOn = Some(OffsetDateTime.now.withNano(0)),
     createdOn = Some(OffsetDateTime.now.withNano(0)),
     updatedOn = Some(OffsetDateTime.now.withNano(0)),
     id = Some(1)
@@ -32,6 +33,7 @@ object Fixtures {
     "body" -> expectedPost.body,
     "author" -> expectedPost.author,
     "category" -> expectedPost.category,
+    "publishedOn" -> expectedPost.publishedOn,
     "createdOn" -> expectedPost.createdOn,
     "updatedOn" -> expectedPost.updatedOn)
 
@@ -48,8 +50,10 @@ object Fixtures {
     "message" -> s"Deleted `${expectedPost.title}`"
   )
 
-  val expectedPostsJson: JsValue = Json.obj(
+  val expectedPostFromCacheJson: JsValue = Json.obj(
     expectedPost.slug.get -> expectedPostJson)
+
+  val expectedPostsJson: JsValue = Json.arr(expectedPost)
 
   val expectedCategory = Category(
     id = Some(1), name = "test category")
@@ -57,14 +61,10 @@ object Fixtures {
     "id" -> expectedCategory.id.get,
     "name" -> expectedCategory.name)
 
+  // TODO: possibly put into config
   val connectionPoolSettings = ConnectionPoolSettings(
     initialSize = 1,
     maxSize = 10)
-
-  // TODO: get from config
-  val jdbcUrl = "jdbc:postgresql://localhost:5433/smough_test"
-  val dbUser = "smough_test"
-  val dbPassword = "smough_test"
 
   lazy val session: DBSession = AutoSession
   lazy val databaseExecutorContext: ExecutionContext =
@@ -82,13 +82,14 @@ object Fixtures {
       """.update.apply()
 
       sql"""
-            INSERT INTO post(title, slug, body, author, category, created_on, updated_on)
+            INSERT INTO post(title, slug, body, author, category, published_on, created_on, updated_on)
             VALUES(
               ${expectedPost.title},
               ${expectedPost.slug},
               ${expectedPost.body},
               ${expectedPost.author},
               ${expectedPost.category},
+              ${expectedPost.publishedOn},
               ${expectedPost.createdOn},
               ${expectedPost.updatedOn})
        """.update.apply()

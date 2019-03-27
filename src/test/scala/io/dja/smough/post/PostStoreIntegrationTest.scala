@@ -1,14 +1,14 @@
-package io.dja.smough.io.dja.smough.database
+package io.dja.smough.post
 
-import io.dja.smough.database.{PostSchema, PostStore}
+import io.dja.smough.app.Configuration
 import io.dja.smough.domain.Post
-import io.dja.smough.test.util.IntegrationTest
-import org.mockito.ArgumentMatchersSugar
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest._
-import scalikejdbc._
 import io.dja.smough.test.Fixtures._
+import io.dja.smough.test.util.IntegrationTest
 import org.flywaydb.core.Flyway
+import org.mockito.ArgumentMatchersSugar
+import org.scalatest._
+import org.scalatest.mockito.MockitoSugar
+import scalikejdbc._
 
 
 class PostStoreIntegrationTest extends FunSuite
@@ -20,6 +20,9 @@ class PostStoreIntegrationTest extends FunSuite
   with BeforeAndAfterAll
   with MustMatchers {
 
+  val jdbcUrl = Configuration.jdbcUrl
+  val dbUser = Configuration.dbUser
+  val dbPassword = Configuration.dbPassword
 
   ConnectionPool.singleton(
     jdbcUrl,
@@ -71,6 +74,7 @@ class PostStoreIntegrationTest extends FunSuite
       "updated post body",
       postFromDb.author,
       postFromDb.category,
+      postFromDb.publishedOn,
       postFromDb.createdOn,
       postFromDb.updatedOn,
       postFromDb.id)
@@ -85,6 +89,7 @@ class PostStoreIntegrationTest extends FunSuite
         "updated post body",
         postFromDb.author,
         postFromDb.category,
+        postFromDb.publishedOn,
         postFromDb.createdOn,
         postFromDb.updatedOn)
       postStore.update(invalidUpdatedPost)
@@ -93,6 +98,11 @@ class PostStoreIntegrationTest extends FunSuite
 
   test("find by slug", IntegrationTest) {
     assertPostEquals(expectedPost, postStore.findBySlug("test-post").get)
+  }
+
+  test("find by id", IntegrationTest) {
+    val postFromDb = findPostFromDb().get
+    assertPostEquals(expectedPost, postStore.findById(postFromDb.id.get).get)
   }
 
   // TODO: test pagination
@@ -107,6 +117,13 @@ class PostStoreIntegrationTest extends FunSuite
     // TODO: find a better way to deal with options
     postStore.delete(findPostFromDb().flatMap(_.id).get)
     None must equal (findPostFromDb())
+  }
+
+  test("Find by year from db", IntegrationTest) {
+    val actual = postStore.findByYear(2019)
+    for (post <- actual) {
+      post.publishedOn.get.getYear must equal(2019)
+    }
   }
 
   // TODO: genericize and move these up to a util class
@@ -139,6 +156,7 @@ class PostStoreIntegrationTest extends FunSuite
       "slug" -> p.slug,
       "body" -> p.body,
       "author" -> p.author,
+      "publishedOn" -> p.publishedOn,
       "createdOn" -> p.createdOn,
       "updatedOn" -> p.updatedOn)
   }
