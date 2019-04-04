@@ -120,10 +120,38 @@ class PostStoreIntegrationTest extends FunSuite
   }
 
   test("Find by year from db", IntegrationTest) {
-    val actual = postStore.findByYear(2019)
-    for (post <- actual) {
-      post.publishedOn.get.getYear must equal(2019)
+    postStore.findByYear(2019)
+        .map(_.publishedOn.map(_.getYear))
+        .head must equal(Some(2019))
+
+    DB.autoCommit { implicit session =>
+      sql"""
+           INSERT INTO post(
+                       parent,
+                       title,
+                       slug,
+                       body,
+                       author,
+                       category,
+                       published_on,
+                       created_on,
+                       updated_on)
+           VALUES(
+                       null,
+                       '2017 post',
+                       '2017-post',
+                       '2017',
+                       1,
+                       1,
+                       '2017-04-04 13:38:57'::timestamp,
+                       '2017-04-04 13:38:57'::timestamp,
+                       '2017-04-04 13:38:57'::timestamp)
+      """.update.apply()
     }
+    postStore.findByYear(2017)
+        .map(_.publishedOn.map(_.getYear))
+        .head must equal(Some(2017))
+
   }
 
   // TODO: genericize and move these up to a util class
