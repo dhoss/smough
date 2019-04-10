@@ -2,78 +2,65 @@ package io.dja.smough.post
 
 import io.dja.smough.Logger
 import io.dja.smough.domain._
-import scalikejdbc._
 
 import scala.concurrent.ExecutionContext
+import collection.JavaConverters._
+import java.sql.{Connection, DriverManager}
+
+import org.jooq._
+import org.jooq.impl._
+import org.jooq.impl.DSL._
+import org.jooq.SQLDialect
+import org.jooq.impl.DSL
+import io.dja.smough.database.Tables._
+import io.dja.smough.database.tables.records.PostRecord
+import scalikejdbc.DB
 
 // TODO: refactor this into a generic trait and make this an implementation of said trait
-class PostStore(session: DBSession, executionContext: ExecutionContext)
-  extends Logger {
+class PostStore(c: Connection) extends Logger {
 
-  GlobalSettings.loggingSQLAndTime = new LoggingSQLAndTimeSettings(
-    enabled = true,
-    singleLineMode = true
-  )
 
-  implicit private val s = session
-  implicit private val ec = executionContext
+  private val query = DSL.using(c, SQLDialect.POSTGRES_10)
 
-  def insert(post: Post) = DB.localTx { implicit s =>
+  def insert(post: Post) = {
     log.info(s"Inserting ${post} into database")
-    sql"""
-          INSERT INTO post(
-            parent,
-            title,
-            slug,
-            body,
-            author,
-            category,
-            published_on,
-            created_on,
-            updated_on)
-          VALUES(
-            ${post.parent},
-            ${post.title},
-            ${post.slug},
-            ${post.body},
-            ${post.author},
-            ${post.category},
-            ${post.publishedOn},
-            now(),
-            now())
-      """.update.apply()
+
+    populatePostRecordFields(post).store()
   }
 
-  def update(post: Post) = DB.localTx { implicit s =>
+  // TODO: handle issues when record to update doesn't exist
+  def update(post: Post) =  {
     log.info(s"Updating ${post} in database")
-    if (post.id.isEmpty) {
-      throw new IllegalArgumentException("id column is required")
-    }
-    // TODO: this needs to be built so only the fields changed get updated
-    sql"""
-          UPDATE post
-          SET
-            parent = ${post.parent},
-            title = ${post.title},
-            body = ${post.body},
-            category = ${post.category},
-            updated_on = NOW()
-          WHERE id = ${post.id}
-       """.update.apply()
+
+    populatePostRecordFields(
+      post, query.fetchOne(POST, POST.ID.eq(post.id.get))).store()
   }
 
-  def delete(id: Int) = DB.localTx { implicit s =>
+  private def populatePostRecordFields(
+      p: Post,
+      r: PostRecord = query.newRecord(POST)): PostRecord = {
+    r.setParent(p.parent.orNull)
+    r.setTitle(p.title)
+    r.setSlug(p.slug.orNull)
+    r.setBody(p.body)
+    r.setAuthor(p.author)
+    r.setCategory(p.category)
+    r.setPublishedOn(p.publishedOn.orNull)
+    r.setCreatedOn(p.createdOn.orNull)
+    r.setUpdatedOn(p.updatedOn.orNull)
+    r
+  }
+
+  def delete(id: Int) = {
     log.info(s"Deleting Post(${id}) from database")
-    sql"""
-          DELETE FROM post WHERE id=${id}
-       """.update.apply()
+
+    query.fetchOne(POST, POST.ID.eq(id)).delete()
   }
 
   // TODO: maybe curry findBy*?
-  def findBySlug(slug: String): Option[Post] =  DB.readOnly { implicit s =>
+  def findBySlug(slug: String): Option[Post] = {
     log.info(s"Loading ${slug} from database")
-    sql"""select id, parent, title, slug, body, author, category, created_on, updated_on from post where slug=${slug}"""
-      .map(PostSchema.apply).single().apply
+
   }
 
   // TODO: this SQL needs to be moved to a common method or something
@@ -124,24 +111,5 @@ class PostStore(session: DBSession, executionContext: ExecutionContext)
     sql"""
          select id, parent, title, slug, body, author, category, created_on, updated_on from post order by created_on desc
        """.map(PostSchema.apply).list.apply
-  }
-}
-
-object PostSchema extends SQLSyntaxSupport[Post] {
-  override val tableName = "post"
-
-  def apply(rs: WrappedResultSet): Post = {
-    Post(
-      rs.intOpt("parent"),
-      rs.string("title"),
-      rs.stringOpt("slug"),
-      rs.string("body"),
-      rs.int("author"),
-      rs.int("category"),
-      // Wrapping in option is required because we can't set withNano otherwise
-      Option(rs.offsetDateTime("updated_on").withNano(0)),
-      Option(rs.offsetDateTime("created_on").withNano(0)),
-      Option(rs.offsetDateTime("updated_on").withNano(0)),
-      rs.intOpt("id"))
   }
 }
